@@ -5,11 +5,11 @@
 
 ## About Me
 
-I'm a passionate developer with a keen interest in cybersecurity and automation. I love exploring new technologies and building projects that make a difference.
+Escapist, wizard and Enginner.
 
 - 🔭 **Current Focus:** Enhancing the capabilities of [BjornCocaine](https://github.com/HackCocaine/BjornCocaine), a project aimed at adding advanced features to the original cyber viking. [PAUSED]
 - 🌱 **Learning:** Reasearching stuff recently, expect news soon!
-- 💬 **Ask Me About:** Cybersecurity, Python scripting, and exploit automation.
+- 💬 **Ask Me About:** Cybersecurity, Scripting, and exploit automation.
 - 📫 **Contact:** Professional Services - [hackfluency.com](https://hackfluency.com/) Personal TG - @HackCocaine
 
 ## Featured Projects
@@ -20,19 +20,21 @@ Here are some of the projects I've been working on:
 
 Enhancing the original cyber viking with new capabilities.
 
-![BjornCocaine](https://github.com/HackCocaine/BjornCocaine/raw/main/screenshot.png)
+![image](https://github.com/user-attachments/assets/055d9117-caf6-4b84-956b-4ab9f8f4b0f3)
+
 
 ### [PDFS](https://github.com/HackCocaine/PDFS)
 
 A tool to keep your PDFs secure and private.
 
-![PDFS](https://github.com/HackCocaine/PDFS/raw/main/screenshot.png)
+![Sin título-1](https://github.com/user-attachments/assets/ce271afa-e88f-41b0-a30e-a54b4805d7f0)
+
 
 ### [twitchbots](https://github.com/HackCocaine/twitchbots)
 
-Automating interactions on Twitch using JavaScript.
+Automating interactions on Twitch using JavaScript (Famous BOT Detector from viral TikTok Videos).
 
-![twitchbots](https://github.com/HackCocaine/twitchbots/raw/main/screenshot.png)
+![image](https://github.com/user-attachments/assets/bb2310f0-56cc-4fcb-bfb4-73a9ca06c94b)
 
 ## GitHub Stats
 
