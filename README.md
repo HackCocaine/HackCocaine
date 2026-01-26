@@ -1,6 +1,6 @@
 # Welcome to HackCocaine's GitHub Profile! 👋
 
-![image](https://github.com/user-attachments/assets/47d01f30-7e88-494e-bbca-0b1f90f12300)
+<img width="3840" height="2160" alt="IntroBinaryGravityNeuralSTFT_ManimCE_v0 19 2" src="https://github.com/user-attachments/assets/1f57b627-2692-4532-84dd-75b8d268945e" />
 
 
 ## About Me
