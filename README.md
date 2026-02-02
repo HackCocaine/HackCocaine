@@ -1,120 +1,108 @@
-## 🎨 Particle-Inspired Animation (SVG + foreignObject)
+## 🎨 Particle-Inspired Animation (SVG — listo para GitHub)
 
 <div align="center">
 
-<!-- Particle system SVG (foreignObject + CSS animations) -->
-<svg xmlns="http://www.w3.org/2000/svg" width="880" height="180" viewBox="0 0 880 180" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Particle animation">
-  <style>
-    /* Particle keyframes (varias amplitudes para variedad) */
-    @keyframes floatA { 0% { transform: translateY(0); } 50% { transform: translateY(-22px); } 100% { transform: translateY(0); } }
-    @keyframes floatB { 0% { transform: translateY(0); } 50% { transform: translateY(-14px); } 100% { transform: translateY(0); } }
-    @keyframes floatC { 0% { transform: translateY(0); } 50% { transform: translateY(-28px); } 100% { transform: translateY(0); } }
-    @keyframes floatD { 0% { transform: translateY(0); } 50% { transform: translateY(-18px); } 100% { transform: translateY(0); } }
-    @keyframes flicker { 0% { opacity: .85; } 50% { opacity: .5; } 100% { opacity: .85; } }
+<!-- SVG particle system: SMIL animations (altamente compatible en README) -->
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="880" height="180" viewBox="0 0 880 180"
+     preserveAspectRatio="xMidYMid meet"
+     role="img" aria-label="Smooth particle animation">
 
-    /* Base particle style (applied to inner divs) */
-    .p {
-      width: 12px;
-      height: 12px;
-      border-radius: 50%;
-      box-shadow: 0 0 10px rgba(255,255,255,0.06), 0 0 18px currentColor;
-      display: block;
-      transform-origin: center;
-      will-change: transform, opacity;
-    }
-  </style>
+  <defs>
+    <!-- subtle radial gradient for particles -->
+    <radialGradient id="g1" cx="50%" cy="35%" r="60%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="1"/>
+      <stop offset="35%" stop-color="#fff" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
 
-  <!-- Partículas: x positions across the canvas. Each foreignObject contains an XHTML div. -->
+    <!-- glow filter -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- easing helper via keySplines will be used in animate elements via calcMode="spline" -->
+  </defs>
+
+  <!-- Background (very subtle) -->
+  <rect x="0" y="0" width="880" height="180" fill="transparent"></rect>
+
+  <!-- Particles: circles with vertical float + slight horizontal drift, staggered -->
   <!-- 1 -->
-  <foreignObject x="30" y="80" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="background:#FF6B6B;color:#FF6B6B; animation: floatA 3.4s ease-in-out infinite alternate; animation-delay: 0.0s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="40" cy="92" r="6" fill="#FF6B6B" filter="url(#glow)">
+    <animate attributeName="cy" values="92;64;92" dur="3.6s" begin="0s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="40;48;40" dur="10s" begin="0s" repeatCount="indefinite" />
+  </circle>
 
   <!-- 2 -->
-  <foreignObject x="90" y="90" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="width:10px;height:10px;background:#FFD93D;color:#FFD93D; opacity:.95; animation: floatB 2.6s ease-in-out infinite alternate; animation-delay: 0.15s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="110" cy="98" r="5" fill="#FFD93D" filter="url(#glow)" opacity="0.95">
+    <animate attributeName="cy" values="98;84;98" dur="2.9s" begin="0.12s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="110;116;110" dur="9.5s" begin="0.12s" repeatCount="indefinite" />
+  </circle>
 
   <!-- 3 -->
-  <foreignObject x="150" y="75" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="background:#6BCB77;color:#6BCB77; animation: floatC 4.0s ease-in-out infinite alternate; animation-delay: 0.05s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="180" cy="86" r="6.5" fill="#6BCB77" filter="url(#glow)">
+    <animate attributeName="cy" values="86;58;86" dur="4.2s" begin="0.05s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="180;174;180" dur="11s" begin="0.05s" repeatCount="indefinite" />
+  </circle>
 
   <!-- 4 -->
-  <foreignObject x="210" y="88" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="width:14px;height:14px;background:#4D96FF;color:#4D96FF; opacity:.9; animation: floatD 2.9s ease-in-out infinite alternate; animation-delay: 0.25s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="250" cy="100" r="7" fill="#4D96FF" filter="url(#glow)" opacity="0.9">
+    <animate attributeName="cy" values="100;82;100" dur="3.1s" begin="0.2s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="250;260;250" dur="8.8s" begin="0.2s" repeatCount="indefinite" />
+  </circle>
 
   <!-- 5 -->
-  <foreignObject x="270" y="82" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="background:#C77DFF;color:#C77DFF; animation: floatA 3.6s ease-in-out infinite alternate; animation-delay: 0.4s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="320" cy="88" r="5.5" fill="#C77DFF" filter="url(#glow)" opacity="0.95">
+    <animate attributeName="cy" values="88;60;88" dur="3.8s" begin="0.38s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="320;328;320" dur="10.6s" begin="0.38s" repeatCount="indefinite" />
+  </circle>
 
   <!-- 6 -->
-  <foreignObject x="330" y="95" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="width:9px;height:9px;background:#FF9F1C;color:#FF9F1C; opacity:.85; animation: floatB 2.4s ease-in-out infinite alternate; animation-delay: 0.1s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="390" cy="96" r="4.5" fill="#FF9F1C" filter="url(#glow)" opacity="0.85">
+    <animate attributeName="cy" values="96;82;96" dur="2.6s" begin="0.15s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="390;384;390" dur="7.8s" begin="0.15s" repeatCount="indefinite" />
+  </circle>
 
   <!-- 7 -->
-  <foreignObject x="390" y="72" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="background:#6EE7B7;color:#6EE7B7; animation: floatC 3.8s ease-in-out infinite alternate; animation-delay: 0.3s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="460" cy="74" r="6.2" fill="#6EE7B7" filter="url(#glow)">
+    <animate attributeName="cy" values="74;48;74" dur="3.9s" begin="0.33s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="460;468;460" dur="12s" begin="0.33s" repeatCount="indefinite" />
+  </circle>
 
   <!-- 8 -->
-  <foreignObject x="450" y="86" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="background:#7C83FD;color:#7C83FD; animation: floatD 2.7s ease-in-out infinite alternate; animation-delay: 0.18s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="530" cy="90" r="5.8" fill="#7C83FD" filter="url(#glow)">
+    <animate attributeName="cy" values="90;72;90" dur="2.75s" begin="0.18s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="530;526;530" dur="9.2s" begin="0.18s" repeatCount="indefinite" />
+  </circle>
 
   <!-- 9 -->
-  <foreignObject x="510" y="92" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="width:11px;height:11px;background:#FFD3A5;color:#FFD3A5; opacity:.9; animation: floatA 3.2s ease-in-out infinite alternate; animation-delay: 0.08s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="600" cy="94" r="6" fill="#FFD3A5" filter="url(#glow)" opacity="0.9">
+    <animate attributeName="cy" values="94;66;94" dur="3.2s" begin="0.08s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="600;608;600" dur="10.2s" begin="0.08s" repeatCount="indefinite" />
+  </circle>
 
   <!-- 10 -->
-  <foreignObject x="570" y="78" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="background:#9BE7FF;color:#9BE7FF; animation: floatB 2.5s ease-in-out infinite alternate; animation-delay: 0.22s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="670" cy="80" r="5.2" fill="#9BE7FF" filter="url(#glow)" opacity="0.95">
+    <animate attributeName="cy" values="80;64;80" dur="2.5s" begin="0.22s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="670;662;670" dur="8.6s" begin="0.22s" repeatCount="indefinite" />
+  </circle>
 
   <!-- 11 -->
-  <foreignObject x="630" y="84" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="width:13px;height:13px;background:#FF7AA2;color:#FF7AA2; animation: floatC 3.9s ease-in-out infinite alternate; animation-delay: 0.12s;"></div>
-    </div>
-  </foreignObject>
+  <circle cx="740" cy="86" r="6.6" fill="#FF7AA2" filter="url(#glow)">
+    <animate attributeName="cy" values="86;60;86" dur="3.95s" begin="0.12s" repeatCount="indefinite" keyTimes="0;0.5;1" calcMode="spline" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"/>
+    <animate attributeName="cx" values="740;748;740" dur="11.8s" begin="0.12s" repeatCount="indefinite" />
+  </circle>
 
-  <!-- 12 -->
-  <foreignObject x="690" y="90" width="16" height="16">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="background:#B7FF9F;color:#B7FF9F; animation: floatD 2.8s ease-in-out infinite alternate; animation-delay: 0.28s;"></div>
-    </div>
-  </foreignObject>
-
-  <!-- Optional subtle twinkle layer on top -->
-  <foreignObject x="760" y="70" width="20" height="20">
-    <div xmlns="http://www.w3.org/1999/xhtml">
-      <div class="p" style="width:6px;height:6px;background:#FFF;color:#FFF; box-shadow:0 0 12px rgba(255,255,255,0.9); animation: flicker 1.8s linear infinite; animation-delay: 0.05s;"></div>
-    </div>
-  </foreignObject>
+  <!-- subtle twinkle -->
+  <circle cx="820" cy="68" r="3" fill="#FFF" opacity="0.95" filter="url(#glow)">
+    <animate attributeName="opacity" values="0.95;0.15;0.95" dur="1.8s" begin="0.05s" repeatCount="indefinite" />
+    <animate attributeName="cy" values="68;60;68" dur="2.0s" begin="0.05s" repeatCount="indefinite"/>
+  </circle>
 
 </svg>
 
