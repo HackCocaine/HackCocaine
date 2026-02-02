@@ -1,0 +1,140 @@
+name: Metrics
+
+on:
+  schedule:
+    - cron: "0 0 * * *" # Runs once daily at midnight UTC
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/metrics.yml'
+      - 'README.md'
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  metrics:
+    name: Generate Metrics
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate metrics SVG
+        uses: lowlighter/metrics@v3.34
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          user: HackCocaine
+          repo: HackCocaine
+          filename: metrics.svg
+          template: card
+          config_timezone: America/Santiago
+          config_order: base, languages, calendar, streak, followers, following, sponsorship, projects, repositories, gists
+          config_animations: yes
+          config_padding: 20
+          config_display: 200
+          plugin_isocalendar: yes
+          plugin_isocalendar_duration: half-year
+          plugin_languages: yes
+          plugin_languages_limit: 8
+          plugin_languages_details: yes
+          plugin_calendar: yes
+          plugin_calendar_limit: 1
+          plugin_habits: yes
+          plugin_habits_days: 14
+          plugin_followup: yes
+          plugin_followup_sections: open-issues, open-prs
+          plugin_repositories: yes
+          plugin_repositories_featured: BjornCocaine, PDFS, twitchbots
+          plugin_repositories_pinned: yes
+          plugin_repositories_starred: yes
+          plugin_repositories_order: stars
+          plugin_activity: yes
+          plugin_activity_limit: 10
+          plugin_activity_days: 30
+          plugin_people: yes
+          plugin_people_limit: 6
+          plugin_gists: yes
+          plugin_gists_limit: 5
+          verify: yes
+
+      - name: Commit metrics SVG
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add metrics.svg
+          git commit -m "Update metrics.svg" || exit 0
+          git push
+
+  readme:
+    name: Generate README
+    runs-on: ubuntu-latest
+    needs: metrics
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate README metrics
+        uses: lowlighter/metrics@v3.34
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          user: HackCocaine
+          repo: HackCocaine
+          filename: .github/readme_metrics.md
+          template: markdown
+          markdown_cache: yes
+          config_timezone: America/Santiago
+          config_animations: yes
+          config_padding: 20
+          plugin_isocalendar: yes
+          plugin_isocalendar_duration: half-year
+          plugin_languages: yes
+          plugin_languages_limit: 8
+          plugin_calendar: yes
+          plugin_calendar_limit: 1
+          plugin_habits: yes
+          plugin_habits_days: 14
+          plugin_repositories: yes
+          plugin_repositories_featured: BjornCocaine, PDFS, twitchbots
+          plugin_repositories_pinned: yes
+          plugin_repositories_starred: yes
+          plugin_activity: yes
+          plugin_activity_limit: 10
+          plugin_activity_days: 30
+
+      - name: Update README
+        run: |
+          # Read the generated metrics
+          METRICS=$(cat .github/readme_metrics.md)
+          
+          # Read the template
+          cat README.md | head -n 1 > README_temp.md
+          
+          # Add metrics section
+          echo "" >> README_temp.md
+          echo "## 📊 Real-Time Metrics" >> README_temp.md
+          echo "" >> README_temp.md
+          echo "<!--metrics-->" >> README_temp.md
+          cat .github/readme_metrics.md >> README_temp.md
+          echo "<!--endmetrics-->" >> README_temp.md
+          echo "" >> README_temp.md
+          
+          # Add remaining content
+          cat README.md | tail -n +2 >> README_temp.md
+          
+          # Replace original README
+          mv README_temp.md README.md
+
+      - name: Commit README update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md
+          git commit -m "Update README metrics" || exit 0
+          git push
