@@ -1,50 +1,65 @@
-# Welcome to HackCocaine's GitHub Profile! 👋
+# 👋 Welcome to HackCocaine's GitHub Profile!
 
-<img width="3840" height="2160" alt="IntroBinaryGravityNeuralSTFT_ManimCE_v0 19 2" src="https://github.com/user-attachments/assets/1f57b627-2692-4532-84dd-75b8d268945e" />
+<!-- Banner GIF animado -->
+<p align="center">
+  <img width="100%" src="https://media.giphy.com/media/13HgwGsXF0aiGY/giphy.gif" alt="Intro Banner"/>
+</p>
 
+---
 
-## About Me
+## 🌌 About Me
 
-Escapist, wizard and Enginner.
+Escapist, wizard, and engineer specializing in **cybersecurity, scripting, and automation**.  
 
-- 🔭 **Current Focus:** Enhancing the capabilities of [BjornCocaine](https://github.com/HackCocaine/BjornCocaine), a project aimed at adding advanced features to the original cyber viking. [PAUSED]
-- 🌱 **Learning:** Reasearching stuff recently, expect news soon!
-- 💬 **Ask Me About:** Cybersecurity, Scripting, and exploit automation.
-- 📫 **Contact:** Professional Services - [hackfluency.com](https://hackfluency.com/) Personal TG - @HackCocaine
+- 🔭 **Current Focus:** Enhancing [BjornCocaine](https://github.com/HackCocaine/BjornCocaine) — adding advanced cyber capabilities. [PAUSED]  
+- 🌱 **Learning:** Advanced automation, exploits research, cyber strategies  
+- 💬 **Ask Me About:** Cybersecurity, Scripting, Exploit Automation  
+- 📫 **Contact:** [hackfluency.com](https://hackfluency.com/) | TG: @HackCocaine
 
-## Featured Projects
+---
 
-Here are some of the projects I've been working on:
+## 🚀 Featured Projects
 
-### [BjornCocaine](https://github.com/HackCocaine/BjornCocaine)
+| Project | Description | Preview |
+|---------|------------|--------|
+| [BjornCocaine](https://github.com/HackCocaine/BjornCocaine) | Enhancing the original cyber viking with new capabilities. | ![BjornCocaine](https://github.com/user-attachments/assets/055d9117-caf6-4b84-956b-4ab9f8f4b0f3) |
+| [PDFS](https://github.com/HackCocaine/PDFS) | Keep your PDFs secure and private. | ![PDFS](https://github.com/user-attachments/assets/ce271afa-e88f-41b0-a30e-a54b4805d7f0) |
+| [twitchbots](https://github.com/HackCocaine/twitchbots) | Automating interactions on Twitch using JavaScript. | ![TwitchBots](https://github.com/user-attachments/assets/bb2310f0-56cc-4fcb-bfb4-73a9ca06c94b) |
 
-Enhancing the original cyber viking with new capabilities.
+---
 
-![image](https://github.com/user-attachments/assets/055d9117-caf6-4b84-956b-4ab9f8f4b0f3)
+## 📊 GitHub Stats
 
+<p align="center">
+  <img src="https://github-readme-stats.vercel.app/api?username=HackCocaine&show_icons=true&theme=radical" alt="GitHub Stats"/>
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=HackCocaine&layout=compact&theme=radical" alt="Top Languages"/>
+</p>
 
-### [PDFS](https://github.com/HackCocaine/PDFS)
+---
 
-A tool to keep your PDFs secure and private.
+## 🎯 Achievements & Activity
 
-![Sin título-1](https://github.com/user-attachments/assets/ce271afa-e88f-41b0-a30e-a54b4805d7f0)
+- 💻 Total Commits: ![Commits](https://img.shields.io/github/commit-activity/m/HackCocaine?style=for-the-badge&logo=github)  
+- 📦 Open Issues: ![Issues](https://img.shields.io/github/issues/HackCocaine?style=for-the-badge&logo=github)  
+- 🔀 Pull Requests: ![PRs](https://img.shields.io/github/issues-pr/HackCocaine?style=for-the-badge&logo=github)  
+- 🌟 Stars Received: ![Stars](https://img.shields.io/github/stars/HackCocaine?style=for-the-badge&logo=github)  
+- 👁️ Visitors: ![Visitor Count](https://profile-counter.glitch.me/HackCocaine/count.svg)
 
+---
 
-### [twitchbots](https://github.com/HackCocaine/twitchbots)
+## 🔗 Connect With Me
 
-Automating interactions on Twitch using JavaScript (Famous BOT Detector from viral TikTok Videos).
+<p align="center">
+  [![Website](https://img.shields.io/badge/Website-hackfluency.com-blue?style=for-the-badge&logo=Google-Chrome)](https://hackfluency.com/)
+  [![LinkedIn](https://img.shields.io/badge/LinkedIn-HackCocaine-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/hackcocaine)
+  [![Telegram](https://img.shields.io/badge/Telegram-@HackCocaine-blue?style=for-the-badge&logo=telegram)](https://t.me/HackCocaine)
+</p>
 
-![image](https://github.com/user-attachments/assets/bb2310f0-56cc-4fcb-bfb4-73a9ca06c94b)
+---
 
-## GitHub Stats
+## 💡 Pro Tips
 
-![Stats](./profile/stats.svg)
-![Top Languages](./profile/top-langs.svg)
-![Pinned](./profile/pin-readme-tools-github-readme-stats.svg)
-
-## Let's Connect
-
-- [My Company](https://hackfluency.com/)
-- [LinkedIn](https://www.linkedin.com/in/hackcocaine)
-
-Feel free to explore my repositories and reach out if you'd like to collaborate on any project.
+- All **stats and badges auto-update dynamically**.  
+- Keep your **project previews visual**; it hace más impacto al primer vistazo.  
+- Use **themes** in GitHub Readme Stats (`radical`, `dark`, `synthwave`, `tokyonight`) for un look moderno.  
+- Banner GIFs o animaciones hacen tu perfil “vivo” y llamativo.
