@@ -1,65 +1,104 @@
-# 👋 Welcome to HackCocaine's GitHub Profile!
-
-<!-- Banner GIF animado -->
+<!-- Header / Banner -->
 <p align="center">
-  <img width="100%" src="https://media.giphy.com/media/13HgwGsXF0aiGY/giphy.gif" alt="Intro Banner"/>
+  <img width="100%" alt="HackCocaine GH Profile" src="https://raw.githubusercontent.com/HackCocaine/HackCocaine/main/assets/banner.png" />
 </p>
+
+<h1 align="center">Hi 👋, I'm HackCocaine</h1>
+<p align="center">Escapist · Wizard · Engineer • Building 🔐, Automating 🧠 & Evolving Systems 🚀</p>
 
 ---
 
-## 🌌 About Me
+## 🔭 About Me
 
-Escapist, wizard, and engineer specializing in **cybersecurity, scripting, and automation**.  
+I’m a passionate engineer working at the intersection of **cybersecurity, automation, and tooling**.  
+Currently exploring new paradigms in exploit automation and tooling ecosystems.
 
-- 🔭 **Current Focus:** Enhancing [BjornCocaine](https://github.com/HackCocaine/BjornCocaine) — adding advanced cyber capabilities. [PAUSED]  
-- 🌱 **Learning:** Advanced automation, exploits research, cyber strategies  
-- 💬 **Ask Me About:** Cybersecurity, Scripting, Exploit Automation  
-- 📫 **Contact:** [hackfluency.com](https://hackfluency.com/) | TG: @HackCocaine
+- 🧠 Deep into tool design, scripting, and system orchestration  
+- 🛠️ Expert in security tooling, scripting pipelines & automation workflows  
+- 💬 Ask me about **cybersec, automation, scripting, dev tooling**
+
+---
+
+## 📌 Quick Links
+
+📫 Contact • 👉 [hackfluency.com](https://hackfluency.com/)  
+✉️ Telegram • 👉 [@HackCocaine](https://t.me/HackCocaine)  
+🔗 LinkedIn • 👉 https://www.linkedin.com/in/hackcocaine
 
 ---
 
 ## 🚀 Featured Projects
 
-| Project | Description | Preview |
-|---------|------------|--------|
-| [BjornCocaine](https://github.com/HackCocaine/BjornCocaine) | Enhancing the original cyber viking with new capabilities. | ![BjornCocaine](https://github.com/user-attachments/assets/055d9117-caf6-4b84-956b-4ab9f8f4b0f3) |
-| [PDFS](https://github.com/HackCocaine/PDFS) | Keep your PDFs secure and private. | ![PDFS](https://github.com/user-attachments/assets/ce271afa-e88f-41b0-a30e-a54b4805d7f0) |
-| [twitchbots](https://github.com/HackCocaine/twitchbots) | Automating interactions on Twitch using JavaScript. | ![TwitchBots](https://github.com/user-attachments/assets/bb2310f0-56cc-4fcb-bfb4-73a9ca06c94b) |
+<details>
+<summary><strong>BjornCocaine</strong> — Cyber Viking Enhancement</summary>
+
+**🔗** https://github.com/HackCocaine/BjornCocaine  
+Toolset and advanced capabilities added to original cyber viking core.  
+</details>
+
+<details>
+<summary><strong>PDFS</strong> — Secure PDF Privacy Tool</summary>
+
+**🔗** https://github.com/HackCocaine/PDFS  
+CLI and automation for encrypted, processed PDF workflows.  
+</details>
+
+<details>
+<summary><strong>twitchbots</strong> — Twitch Interaction Automation</summary>
+
+**🔗** https://github.com/HackCocaine/twitchbots  
+Automating chat and moderation workflows via JS scripting.  
+</details>
 
 ---
 
 ## 📊 GitHub Stats
 
 <p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=HackCocaine&show_icons=true&theme=radical" alt="GitHub Stats"/>
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=HackCocaine&layout=compact&theme=radical" alt="Top Languages"/>
+  <img height="170" src="https://github-readme-stats.vercel.app/api?username=HackCocaine&show_icons=true&theme=tokyonight" />
+  <img height="170" src="https://github-readme-stats.vercel.app/api/top-langs/?username=HackCocaine&layout=compact&theme=tokyonight" />
 </p>
 
 ---
 
-## 🎯 Achievements & Activity
-
-- 💻 Total Commits: ![Commits](https://img.shields.io/github/commit-activity/m/HackCocaine?style=for-the-badge&logo=github)  
-- 📦 Open Issues: ![Issues](https://img.shields.io/github/issues/HackCocaine?style=for-the-badge&logo=github)  
-- 🔀 Pull Requests: ![PRs](https://img.shields.io/github/issues-pr/HackCocaine?style=for-the-badge&logo=github)  
-- 🌟 Stars Received: ![Stars](https://img.shields.io/github/stars/HackCocaine?style=for-the-badge&logo=github)  
-- 👁️ Visitors: ![Visitor Count](https://profile-counter.glitch.me/HackCocaine/count.svg)
-
----
-
-## 🔗 Connect With Me
+## 🧠 Dev Activity
 
 <p align="center">
-  [![Website](https://img.shields.io/badge/Website-hackfluency.com-blue?style=for-the-badge&logo=Google-Chrome)](https://hackfluency.com/)
-  [![LinkedIn](https://img.shields.io/badge/LinkedIn-HackCocaine-blue?style=for-the-badge&logo=linkedin)](https://www.linkedin.com/in/hackcocaine)
-  [![Telegram](https://img.shields.io/badge/Telegram-@HackCocaine-blue?style=for-the-badge&logo=telegram)](https://t.me/HackCocaine)
+  <img src="https://github-readme-streak-stats.herokuapp.com/?user=HackCocaine&theme=tokyonight" alt="GitHub Streak" />
 </p>
 
 ---
 
-## 💡 Pro Tips
+## 📈 Metrics & Badges
 
-- All **stats and badges auto-update dynamically**.  
-- Keep your **project previews visual**; it hace más impacto al primer vistazo.  
-- Use **themes** in GitHub Readme Stats (`radical`, `dark`, `synthwave`, `tokyonight`) for un look moderno.  
-- Banner GIFs o animaciones hacen tu perfil “vivo” y llamativo.
+<p align="center">
+  <!-- Follower Badge -->
+  <img alt="GitHub Followers" src="https://img.shields.io/github/followers/HackCocaine?label=Followers&style=for-the-badge">
+
+  <!-- Repo Count Badge -->
+  <img alt="Public Repos" src="https://img.shields.io/github/repo-size/HackCocaine?style=for-the-badge">
+
+  <!-- Issues Badge -->
+  <img alt="Open Issues" src="https://img.shields.io/github/issues/HackCocaine?style=for-the-badge">
+
+  <!-- Stars Badge -->
+  <img alt="Stars" src="https://img.shields.io/github/stars/HackCocaine?style=for-the-badge">
+</p>
+
+---
+
+## 🌌 Visitor Counter
+
+<p align="center">
+  <img src="https://profile-counter.glitch.me/HackCocaine/count.svg" alt="Profile Visitor Count" />
+</p>
+
+---
+
+## 🤝 Let’s Connect
+
+<p align="center">
+  <a href="https://hackfluency.com/"><strong>🌐 Website</strong></a> •  
+  <a href="https://www.linkedin.com/in/hackcocaine"><strong>🔗 LinkedIn</strong></a> •  
+  <a href="https://t.me/HackCocaine"><strong>💬 Telegram</strong></a>
+</p>
