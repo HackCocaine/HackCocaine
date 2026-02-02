@@ -7,13 +7,27 @@
 ## 🎨 Particle-Inspired Art
 
 <div align="center">
-•     •  •       •       •
-• • • • •
-• • • • •
-• • • • •
-• • • • • •
 
-*(Interactive particle animation is not possible in GitHub READMEs, but the spirit lives here! 🎇)*
+<svg width="200" height="80" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="20" cy="40" r="3" fill="#FF6B6B">
+    <animate attributeName="cy" values="40;10;40" dur="2s" repeatCount="indefinite" />
+    <animate attributeName="cx" values="20;180;20" dur="4s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="50" cy="40" r="3" fill="#FFD93D">
+    <animate attributeName="cy" values="40;70;40" dur="2.5s" repeatCount="indefinite" />
+    <animate attributeName="cx" values="50;150;50" dur="3.5s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="80" cy="40" r="3" fill="#6BCB77">
+    <animate attributeName="cy" values="40;20;40" dur="3s" repeatCount="indefinite" />
+    <animate attributeName="cx" values="80;120;80" dur="4s" repeatCount="indefinite" />
+  </circle>
+  <circle cx="110" cy="40" r="3" fill="#4D96FF">
+    <animate attributeName="cy" values="40;60;40" dur="2.2s" repeatCount="indefinite" />
+    <animate attributeName="cx" values="110;90;110" dur="3s" repeatCount="indefinite" />
+  </circle>
+</svg>
+
+<p style="font-size:12px; color:#888;">*Particles dancing… GitHub style!* 🎇</p>
 
 </div>
 
@@ -50,4 +64,4 @@
 
 ---
 
-> *The quest for interactive particles in a README continues... For now, we imagine the animation. ✨*
+> *Particles in motion, imagination required. ✨*
