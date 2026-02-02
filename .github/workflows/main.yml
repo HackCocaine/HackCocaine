@@ -68,8 +68,9 @@ EOF
 
       - name: Update README
         run: |
-          # Reemplaza placeholder con las 3 imágenes
-          sed -i '/<!-- METRICS_IMAGE -->/!b;n;c\<p align="center">\n![Stars](assets/metric_1.png) ![Forks](assets/metric_2.png) ![Issues](assets/metric_3.png)\n</p>' README.md
+          # Reemplaza placeholder con las 3 imágenes de métricas
+          BLOCK='<p align="center">![Stars](assets/metric_1.png) ![Forks](assets/metric_2.png) ![Issues](assets/metric_3.png)</p>'
+          sed -i "/<!-- METRICS_IMAGE -->/!b;n;c $BLOCK" README.md
 
       - name: Commit & Push
         run: |
