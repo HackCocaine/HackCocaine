@@ -24,7 +24,7 @@ HackCocaine/
 ├── 📄 PDFS/                   # Privacy-focused PDF security solution
 ├── 🤖 twitchbots/             # Twitch interaction automation & bot detection
 ├── 📊 .github/workflows/      # CI/CD pipelines & automation
-└── 📈 profile/                # Static metrics & visualizations
+└── 📈 metrics.svg             # Real-time metrics visualization
 ```
 
 ---
@@ -58,18 +58,6 @@ Enterprise-grade PDF security and privacy management solution with encryption, a
 Automated bot detection system for Twitch streams. Originally developed from viral TikTok research on automated interaction patterns.
 
 ![Twitch Analysis](https://github.com/user-attachments/assets/bb2310f0-56cc-4fcb-bfb4-73a9ca06c94b)
-
----
-
-## 📈 Development Analytics
-
-### Language Distribution
-
-![Top Languages](profile/top-langs.svg)
-
-### Contribution Activity
-
-![GitHub Stats](profile/stats.svg)
 
 ---
 
