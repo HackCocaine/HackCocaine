@@ -1,6 +1,12 @@
 name: Update README cards
 
 on:
+  push:
+    branches:
+      - main
+    # Ignorar commits hechos sobre los SVG generados para evitar loops
+    paths-ignore:
+      - 'profile/*.svg'
   schedule:
     - cron: "0 0 * * *" # Runs once daily at midnight
   workflow_dispatch:
@@ -44,5 +50,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add profile/*.svg
-          git commit -m "Update README cards" || exit 0
+          git diff --cached --quiet || git commit -m "Update README cards"
           git push
