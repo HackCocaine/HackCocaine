@@ -1,35 +1,18 @@
-# HackCocaine | Marcelo Burgos
+# Marcelo Burgos
 
-## 🧪 Cybersecurity Researcher & Software Engineer
+## Cybersecurity Researcher & Software Engineer
 
 ![Header Banner](https://github.com/user-attachments/assets/47d01f30-7e88-494e-bbca-0b1f90f12300)
 
 ---
 
-## 📊 Real-Time Metrics
+## 📊 Metrics
 
-<!--metrics-->
 ![Metrics Card](metrics.svg)
-<!--endmetrics-->
 
 ---
 
-## 🏗️ Project Architecture
-
-### 📂 Repository Structure
-
-```
-HackCocaine/
-├── 📱 BjornCocaine/          # Advanced cyber viking automation framework
-├── 📄 PDFS/                   # Privacy-focused PDF security solution
-├── 🤖 twitchbots/             # Twitch interaction automation & bot detection
-├── 📊 .github/workflows/      # CI/CD pipelines & automation
-└── 📈 metrics.svg             # Real-time metrics visualization
-```
-
----
-
-## 🔬 Featured Research Projects
+## 🔬 Featured Projects
 
 ### [BjornCocaine](https://github.com/HackCocaine/BjornCocaine)
 
@@ -142,6 +125,6 @@ Interested in cybersecurity research, automation development, or security consul
 **Last Updated:** $(date +"%Y-%m-%d %H:%M UTC")  
 **Automated Updates:** Every 24 hours via GitHub Actions
 
-*Built with 🧪 by HackCocaine*
+*Built with 🧪 by Marcelo Burgos*
 
 </div>
