@@ -3,7 +3,7 @@ name: Auto-generate Metrics Visuals
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 12 * * *'  # todos los días a mediodía
+    - cron: '0 12 * * *'
 
 jobs:
   generate:
@@ -34,48 +34,22 @@ jobs:
           echo "forks=$FORKS" >> $GITHUB_OUTPUT
           echo "issues=$ISSUES" >> $GITHUB_OUTPUT
 
-      - name: Generate prompts
-        id: prompts
-        run: |
-          cat <<EOF > prompts.json
-[
-  "Minimalist neon particle style, glowing lines and dots, representing ${STARS} stars on GitHub",
-  "Clean futuristic neon visual for ${FORKS} forks with subtle particle glow",
-  "Soft glowing particle graph representing ${ISSUES} open issues, minimalistic"
-]
-EOF
-
-      - name: Generate Images (CPU)
-        run: |
-          python - <<'EOF'
-import json, os
-from diffusers import StableDiffusionPipeline
-
-os.makedirs("assets", exist_ok=True)
-
-with open("prompts.json") as f:
-    prompts = json.load(f)
-
-pipe = StableDiffusionPipeline.from_pretrained(
-    "runwayml/stable-diffusion-v1-5",
-)
-pipe.enable_attention_slicing()
-
-for i, prompt in enumerate(prompts):
-    img = pipe(prompt, height=400, width=800, num_inference_steps=20).images[0]
-    img.save(f"assets/metric_{i+1}.png")
-EOF
+      - name: Generate Images
+        env:
+          STARS: ${{ steps.metrics.outputs.stars }}
+          FORKS: ${{ steps.metrics.outputs.forks }}
+          ISSUES: ${{ steps.metrics.outputs.issues }}
+        run: python generate_metrics.py
 
       - name: Update README
         run: |
-          # Reemplaza placeholder con las 3 imágenes de métricas
           BLOCK='<p align="center">![Stars](assets/metric_1.png) ![Forks](assets/metric_2.png) ![Issues](assets/metric_3.png)</p>'
-          sed -i "/<!-- METRICS_IMAGE -->/!b;n;c $BLOCK" README.md
+          perl -i -0pe 's/<!-- METRICS_IMAGE -->.*<!-- \/METRICS_IMAGE -->/$ENV{BLOCK}/smg' README.md
 
       - name: Commit & Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md assets/*.png
+          git add README.md assets/*.png prompts.json
           git commit -m "Auto-update metrics visuals [ci skip]" || echo "No changes to commit"
-          git push origin HEAD
+          git push origin main
