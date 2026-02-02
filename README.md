@@ -2,9 +2,10 @@
 
 ## 📊 Analytics & Insights
 
-<!-- This section will be populated by the Metrics workflow -->
-![Metrics](github-metrics.svg)
+This profile is configured with automated metrics to visualize repository activity and technical expertise in real-time.
+
+![Metrics](./github-metrics.svg)
 
 ---
 
-*System initialized for scientific data visualization. Monitoring repository activity in near real-time.*
+*Status: Automated metrics system active. Monitoring repository telemetry.*

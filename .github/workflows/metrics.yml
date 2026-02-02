@@ -1,12 +1,14 @@
 name: Metrics
 
 on:
-  schedule:
-    - cron: "0 0 * * *"
   workflow_dispatch:
   push:
     branches:
       - main
+
+concurrency:
+  group: metrics
+  cancel-in-progress: true
 
 jobs:
   github-metrics:
@@ -18,7 +20,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Generate Metrics
-        uses: lowlighter/metrics@v3.34
+        uses: lowlighter/metrics@latest
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           user: HackCocaine
@@ -38,5 +40,4 @@ jobs:
           plugin_habits_facts: yes
           plugin_habits_charts: yes
           filename: github-metrics.svg
-          committer_token: ${{ secrets.GITHUB_TOKEN }}
           committer_message: "chore: update metrics [skip ci]"
