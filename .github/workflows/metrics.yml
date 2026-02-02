@@ -4,11 +4,6 @@ on:
   schedule:
     - cron: "0 0 * * *"
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/metrics.yml'
 
 permissions:
   contents: write
@@ -27,23 +22,16 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           user: HackCocaine
+          repo: HackCocaine
           filename: metrics.svg
-          # Classic template is default - no need to specify
           config_timezone: America/Santiago
           config_animations: yes
           config_padding: 20
-          # Core plugins
-          base: header
+          base: yes
           plugin_languages: yes
           plugin_languages_limit: 8
           plugin_calendar: yes
           plugin_calendar_limit: 1
-          plugin_repositories: yes
-          plugin_repositories_pinned: yes
-          plugin_activity: yes
-          plugin_activity_limit: 5
-          plugin_habits: yes
-          plugin_habits_days: 14
 
       - name: Commit metrics
         run: |
