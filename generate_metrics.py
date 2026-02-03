@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 """
-GitHub Metrics Dashboard - Lightweight Particle Animation Generator
-
-Creates beautiful, smooth particle-based visualizations using pure Python.
-Fast, efficient, and renders in seconds on CPU.
+GitHub Metrics Dashboard - Particle Animation Generator
+Creates beautiful animated visualizations with persistent particle systems.
 """
 
 import json
@@ -11,18 +9,17 @@ import math
 import os
 import random
 from pathlib import Path
-from typing import Callable
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
 # Metrics collection
-stars = int(os.environ.get("STARS", "0"))
-forks = int(os.environ.get("FORKS", "0"))
-issues = int(os.environ.get("ISSUES", "0"))
-commits = int(os.environ.get("COMMITS", "0"))
-contributors = int(os.environ.get("CONTRIBUTORS", "0"))
-prs_30d = int(os.environ.get("PRS_30D", "0"))
-issues_30d = int(os.environ.get("ISSUES_30D", "0"))
+stars = int(os.environ.get("STARS", "0") or "0")
+forks = int(os.environ.get("FORKS", "0") or "0")
+issues = int(os.environ.get("ISSUES", "0") or "0")
+commits = int(os.environ.get("COMMITS", "0") or "0")
+contributors = int(os.environ.get("CONTRIBUTORS", "0") or "0")
+prs_30d = int(os.environ.get("PRS_30D", "0") or "0")
+issues_30d = int(os.environ.get("ISSUES_30D", "0") or "0")
 
 assets_dir = Path("assets")
 assets_dir.mkdir(exist_ok=True)
@@ -41,477 +38,389 @@ with open("metrics_data.json", "w") as f:
 
 
 class Colors:
-    """Color palettes for each metric type."""
-
     STAR = {
         "primary": (255, 200, 80),
         "secondary": (255, 150, 50),
         "glow": (255, 220, 150),
-        "bg": (15, 12, 20),
+        "bg": (12, 10, 18),
     }
     FORK = {
         "primary": (150, 120, 255),
         "secondary": (80, 200, 255),
         "glow": (200, 180, 255),
-        "bg": (15, 12, 20),
+        "bg": (12, 10, 18),
     }
     ISSUE = {
-        "primary": (255, 120, 80),
-        "secondary": (255, 180, 100),
-        "glow": (255, 220, 180),
-        "bg": (20, 15, 15),
+        "primary": (255, 100, 70),
+        "secondary": (255, 160, 100),
+        "glow": (255, 200, 160),
+        "bg": (18, 12, 12),
     }
     CONTRIBUTOR = {
-        "primary": (80, 220, 150),
-        "secondary": (100, 180, 255),
-        "glow": (180, 255, 220),
-        "bg": (12, 15, 18),
+        "primary": (80, 210, 150),
+        "secondary": (100, 170, 240),
+        "glow": (170, 240, 210),
+        "bg": (10, 12, 15),
     }
-
-    DASHBOARD_BG = (10, 10, 15)
 
 
 class Particle:
-    def __init__(self, x, y, vx, vy, size, color, life=1.0, decay=0.01):
+    def __init__(self, x, y, vx, vy, size, color, life=1.0, decay=0.02):
         self.x, self.y = x, y
         self.vx, self.vy = vx, vy
-        self.base_size = size
-        self.size = size
+        self.base_size = max(0.5, size)
+        self.size = self.base_size
         self.color = color
-        self.life = life
-        self.decay = decay
-        self.pulse_phase = random.random() * 2 * math.pi
+        self.life = min(1.0, max(0.1, life))
+        self.decay = max(0.005, min(0.05, decay))
+        self.pulse = random.random() * 6.28
 
-    def update(self, dt=1.0):
-        self.x += self.vx * dt
-        self.y += self.vy * dt
-        self.life -= self.decay * dt
-        self.pulse_phase += 0.1 * dt
-        return self.life > 0
+    def update(self):
+        self.x += self.vx
+        self.y += self.vy
+        self.life -= self.decay
+        self.pulse += 0.15
+        if self.life < 0.1:
+            self.life = 0.1
+        return self.life > 0.05
 
-    def get_current_size(self):
-        pulse = 0.85 + 0.15 * math.sin(self.pulse_phase)
-        return self.base_size * self.life * pulse
+    def get_size(self):
+        pulse_factor = 0.85 + 0.15 * math.sin(self.pulse)
+        return self.base_size * self.life * pulse_factor
 
 
 class ParticleSystem:
-    def __init__(self, width, height):
-        self.width, self.height = width, height
+    def __init__(self, w, h):
+        self.w, self.h = w, h
         self.particles = []
-        self.time = 0.0
-
-    def clear(self):
-        self.particles.clear()
 
     def spawn(
         self,
         x,
         y,
         count=1,
-        size_range=(2, 6),
-        speed_range=(0.5, 2.0),
+        size=3.0,
+        speed=1.5,
         color=(255, 255, 255),
         life=1.0,
-        decay=0.01,
-        angle_range=(0, 2 * math.pi),
+        decay=0.02,
+        angle=None,
     ):
-        # Ensure valid ranges
-        size_min, size_max = size_range
-        if size_min > size_max:
-            size_min, size_max = size_max, size_min
-        if size_max < 0.5:
-            size_min, size_max = 0.5, 1.5
-
-        speed_min, speed_max = speed_range
-        if speed_min > speed_max:
-            speed_min, speed_max = speed_max, speed_min
-        if speed_max < 0.1:
-            speed_min, speed_max = 0.1, 0.5
-
+        size = max(0.5, float(size))
+        speed = max(0.1, float(speed))
         for _ in range(count):
-            angle = random.uniform(*angle_range)
-            speed = random.uniform(speed_min, speed_max)
+            a = angle if angle is not None else random.random() * 6.28
+            s = speed * (0.5 + random.random() * 0.5)
             self.particles.append(
                 Particle(
-                    x,
-                    y,
-                    math.cos(angle) * speed,
-                    math.sin(angle) * speed,
-                    random.uniform(size_min, size_max),
-                    color,
-                    life,
-                    decay,
+                    x, y, math.cos(a) * s, math.sin(a) * s, size, color, life, decay
                 )
             )
 
-    def update(self, dt=1.0):
-        self.time += dt
-        self.particles = [p for p in self.particles if p.update(dt)]
-        return len(self.particles)
+    def update(self):
+        self.particles = [p for p in self.particles if p.update()]
 
-    def render(self, img, glow=True):
-        draw = ImageDraw.Draw(img)
-
-        if glow:
-            glow_img = Image.new("RGBA", img.size, (0, 0, 0, 0))
-            glow_draw = ImageDraw.Draw(glow_img)
-            for p in self.particles:
-                size = p.get_current_size() * 3
-                alpha = int(60 * p.life)
-                glow_draw.ellipse(
-                    [p.x - size, p.y - size, p.x + size, p.y + size],
-                    fill=p.color + (alpha,),
-                )
-            img = Image.alpha_composite(img.convert("RGBA"), glow_img).convert("RGB")
-            draw = ImageDraw.Draw(img)
+    def render(self, img):
+        glow = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        glow_draw = ImageDraw.Draw(glow)
 
         for p in self.particles:
-            size = p.get_current_size()
-            draw.ellipse([p.x - size, p.y - size, p.x + size, p.y + size], fill=p.color)
+            sz = p.get_size() * 2.5
+            alpha = int(70 * p.life)
+            glow_draw.ellipse(
+                [p.x - sz, p.y - sz, p.x + sz, p.y + sz], fill=p.color + (alpha,)
+            )
+
+        img_p = Image.alpha_composite(img.convert("RGBA"), glow).convert("RGB")
+        draw = ImageDraw.Draw(img_p)
+
+        for p in self.particles:
+            sz = p.get_size()
+            draw.ellipse([p.x - sz, p.y - sz, p.x + sz, p.y + sz], fill=p.color)
+
+        return img_p
 
 
 class MetricVisualizer:
-    def __init__(self, width, height, palette, label):
-        self.width, self.height = width, height
+    def __init__(self, w, h, palette, label):
+        self.w, self.h = w, h
         self.palette = palette
         self.label = label
-        self.system = ParticleSystem(width, height)
-        self.time = 0.0
+        self.system = ParticleSystem(w, h)
 
-    def get_particle_count(self, metric_value):
-        if metric_value == 0:
-            return 5
-        return min(40, max(5, int(math.log(metric_value + 1) * 6)))
-
-    def generate_frame(self, metric_value, frame_idx, total_frames):
-        bg_color = self.palette["bg"]
-        img = Image.new("RGB", (self.width, self.height), bg_color)
-        self.time = frame_idx * 0.12
-
-        center_x, center_y = self.width // 2, self.height // 2
-
-        # Draw label at top
+    def make_frame(self, metric_value, frame_idx, total_frames):
+        img = Image.new("RGB", (self.w, self.h), self.palette["bg"])
         draw = ImageDraw.Draw(img)
-        label_text = f"{self.label}"
-        bbox = draw.textbbox((0, 0), label_text)
-        text_w = bbox[2] - bbox[0]
-        draw.text(
-            ((self.width - text_w) / 2, 15), label_text, fill=self.palette["secondary"]
-        )
 
-        # Draw metric value at bottom
-        value_text = f"{metric_value:,}"
-        bbox = draw.textbbox((0, 0), value_text)
-        text_w, text_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
+        # Label
+        lw = draw.textlength(self.label)
+        draw.text(((self.w - lw) / 2, 10), self.label, fill=self.palette["secondary"])
+
+        # Value
+        val = f"{metric_value:,}"
+        vw = draw.textlength(val)
+        vh = 18
         draw.text(
-            ((self.width - text_w) / 2, self.height - text_h - 20),
-            value_text,
-            fill=self.palette["primary"],
+            ((self.w - vw) / 2, self.h - vh - 8), val, fill=self.palette["primary"]
         )
 
         return img
 
-    def animate(self, metric_value, output_path, keyframes=12, fps=10):
-        print(f"  Generating {self.label} ({keyframes} frames)...")
-        frames = []
+    def animate(self, metric_value, path, frames=16, fps=12):
+        print(f"  {self.label}: {frames} frames...")
+        result_frames = []
 
-        for i in range(keyframes):
-            frame = self.generate_frame(metric_value, i, keyframes)
-            frames.append(frame)
+        # Initialize system with some particles
+        for _ in range(15):
+            self.system.spawn(
+                self.w / 2 + random.uniform(-40, 40),
+                self.h / 2 + random.uniform(-20, 20),
+                1,
+                2,
+                0.3,
+                self.palette["glow"],
+                0.8,
+                0.015,
+            )
 
-        frames[0].save(
-            output_path,
+        for i in range(frames):
+            frame = self.make_frame(metric_value, i, frames)
+            self.animate_frame(frame, metric_value, i, frames)
+            result_frames.append(frame)
+
+        result_frames[0].save(
+            path,
             save_all=True,
-            append_images=frames[1:],
+            append_images=result_frames[1:],
             duration=int(1000 / fps),
             loop=0,
             optimize=True,
         )
-        print(f"  Saved: {output_path}")
+        print(f"    Saved: {path}")
+
+    def animate_frame(self, img, metric_value, frame_idx, total_frames):
+        pass
 
 
 class StarVisualizer(MetricVisualizer):
-    def generate_frame(self, metric_value, frame_idx, total_frames):
-        img = super().generate_frame(metric_value, frame_idx, total_frames)
-        draw = ImageDraw.Draw(img)
-
-        center_x, center_y = self.width // 2, self.height // 2 - 10
-        time = self.time
+    def animate_frame(self, img, metric_value, frame_idx, total_frames):
+        t = frame_idx * 0.2
+        cx, cy = self.w / 2, self.h / 2 + 5
 
         # Orbiting particles
-        count = self.get_particle_count(metric_value)
+        count = max(8, min(25, int(math.log(max(1, metric_value + 1)) * 8)))
         for i in range(count):
-            angle = (i / count) * 2 * math.pi + time * 0.4
-            radius = 35 + 15 * math.sin(time + i * 0.2)
-            x = center_x + math.cos(angle) * radius
-            y = center_y + math.sin(angle) * radius
+            angle = (i / count) * 6.28 + t * 0.5
+            r = 35 + 12 * math.sin(t * 2 + i * 0.3)
+            x = cx + math.cos(angle) * r
+            y = cy + math.sin(angle) * r
             self.system.spawn(
-                x, y, 1, (2, 4), (0.1, 0.3), self.palette["primary"], 0.5, 0.012
+                x, y, 1, 2.5, 0.2, self.palette["primary"], 0.6, 0.01, angle + 1.57
             )
 
-        # Twinkling stars
-        for _ in range(3):
-            x_min, x_max = 10, self.width - 10
-            y_min, y_max = 40, self.height - 50
-            if x_min < x_max and y_min < y_max:
-                x = random.randint(x_min, x_max)
-                y = random.randint(y_min, y_max)
-                brightness = 0.4 + 0.6 * math.sin(time * 2 + x * 0.1)
-                color = tuple(int(c * brightness) for c in self.palette["glow"])
-                self.system.spawn(x, y, 1, (1, 2), (0, 0), color, 0.4, 0.02)
+        # Twinkling background
+        for _ in range(2):
+            x = random.uniform(20, self.w - 20)
+            y = random.uniform(35, self.h - 55)
+            b = 0.4 + 0.5 * math.sin(t * 3 + x * 0.1)
+            c = tuple(int(v * b) for v in self.palette["glow"])
+            self.system.spawn(x, y, 1, 1.2, 0, c, 0.4, 0.02)
 
         self.system.update()
-        self.system.render(img, glow=True)
-
-        return img
+        new_img = self.system.render(img)
+        img.paste(new_img, (0, 0))
 
 
 class ForkVisualizer(MetricVisualizer):
-    def generate_frame(self, metric_value, frame_idx, total_frames):
-        img = super().generate_frame(metric_value, frame_idx, total_frames)
-        draw = ImageDraw.Draw(img)
+    def animate_frame(self, img, metric_value, frame_idx, total_frames):
+        t = frame_idx * 0.18
+        cx, cy = self.w / 2, self.h / 2 + 5
 
-        center_x, center_y = self.width // 2, self.height // 2 - 10
-        time = self.time
-
-        # Branching network
-        branches = min(8, max(2, int(math.sqrt(metric_value + 1)) + 2))
+        # Branching
+        branches = max(3, min(8, int(math.sqrt(max(1, metric_value + 1))) + 2))
         for i in range(branches):
-            angle = (i / branches) * 2 * math.pi - math.pi / 2 + time * 0.1
-            length = 45 + 10 * math.sin(time + i * 0.4)
-            end_x = center_x + math.cos(angle) * length
-            end_y = center_y + math.sin(angle) * length
-            draw.line(
-                [center_x, center_y, end_x, end_y],
-                fill=self.palette["primary"],
-                width=2,
-            )
+            angle = (i / branches) * 6.28 - 1.57 + t * 0.15
+            length = 40 + 8 * math.sin(t + i * 0.4)
+            ex = cx + math.cos(angle) * length
+            ey = cy + math.sin(angle) * length
+            draw = ImageDraw.Draw(img)
+            draw.line([cx, cy, ex, ey], fill=self.palette["primary"], width=2)
 
-        # Floating particles
-        count = self.get_particle_count(metric_value)
+        # Particles on branches
+        count = max(6, min(20, int(math.log(max(1, metric_value + 1)) * 5)))
         for i in range(count):
-            angle = (i / count) * 2 * math.pi + time * 0.3
-            radius = 25 + 20 * abs(math.sin(time + i * 0.15))
-            x = center_x + math.cos(angle) * radius
-            y = center_y + math.sin(angle) * radius
-            self.system.spawn(
-                x, y, 1, (2, 3), (0.2, 0.4), self.palette["glow"], 0.4, 0.015
-            )
+            angle = (i / count) * 6.28 + t * 0.4
+            r = 22 + 18 * abs(math.sin(t * 0.8 + i * 0.2))
+            x = cx + math.cos(angle) * r
+            y = cy + math.sin(angle) * r
+            self.system.spawn(x, y, 1, 2, 0.25, self.palette["glow"], 0.5, 0.012)
 
         self.system.update()
-        self.system.render(img, glow=True)
-        return img
+        new_img = self.system.render(img)
+        img.paste(new_img, (0, 0))
 
 
 class IssueVisualizer(MetricVisualizer):
-    def generate_frame(self, metric_value, frame_idx, total_frames):
-        img = super().generate_frame(metric_value, frame_idx, total_frames)
-        draw = ImageDraw.Draw(img)
-
-        center_x, center_y = self.width // 2, self.height // 2 - 10
-        time = self.time
+    def animate_frame(self, img, metric_value, frame_idx, total_frames):
+        t = frame_idx * 0.25
+        cx, cy = self.w / 2, self.h / 2 + 5
 
         # Pulse rings
-        pulse_size = 30 + 10 * math.sin(time * 2.5)
+        pulse = 25 + 8 * math.sin(t * 2.2)
         for i in range(2):
-            ring_size = pulse_size + i * 12
+            rs = pulse + i * 10
+            draw = ImageDraw.Draw(img)
             draw.ellipse(
-                [
-                    center_x - ring_size,
-                    center_y - ring_size,
-                    center_x + ring_size,
-                    center_y + ring_size,
-                ],
+                [cx - rs, cy - rs, cx + rs, cy + rs],
                 outline=self.palette["primary"],
                 width=2,
             )
 
         # Rising particles
-        count = self.get_particle_count(metric_value)
+        count = max(5, min(18, max(1, metric_value // 3)))
         for i in range(count):
-            y = (
-                self.height
-                - 70
-                - (frame_idx / total_frames) * 80
-                + 20 * math.sin(time + i)
-            )
-            x = center_x + (i - count / 2) * 15 + 8 * math.sin(time + i * 0.5)
-            size = max(0.5, 2.5 + math.sin(time * 2 + i) * 1)
-            self.system.spawn(
-                x,
-                y,
-                1,
-                (size, size + 1),
-                (0, -0.4 - i * 0.02),
-                self.palette["primary"],
-                0.6,
-                0.012,
-            )
+            y = self.h - 50 - (frame_idx / total_frames) * 70 + 15 * math.sin(t + i)
+            x = cx + (i - count / 2) * 12 * math.sin(t + i * 0.4)
+            sz = max(0.5, 2 + math.sin(t * 1.8 + i) * 0.8)
+            self.system.spawn(x, y, 1, sz, 0.35, self.palette["primary"], 0.7, 0.015)
 
         self.system.update()
-        self.system.render(img, glow=True)
-        return img
+        new_img = self.system.render(img)
+        img.paste(new_img, (0, 0))
 
 
 class ContributorVisualizer(MetricVisualizer):
-    def generate_frame(self, metric_value, frame_idx, total_frames):
-        img = super().generate_frame(metric_value, frame_idx, total_frames)
-        draw = ImageDraw.Draw(img)
+    def animate_frame(self, img, metric_value, frame_idx, total_frames):
+        t = frame_idx * 0.15
+        cx, cy = self.w / 2, self.h / 2 + 5
 
-        center_x, center_y = self.width // 2, self.height // 2 - 10
-        time = self.time
-
-        # Connected nodes
-        nodes = min(12, max(2, metric_value))
+        # Nodes
+        nodes = max(3, min(10, max(1, metric_value)))
         node_pos = []
         for i in range(nodes):
-            angle = (i / nodes) * 2 * math.pi + time * 0.12
-            radius = 30 + 15 * math.sin(time + i * 0.4)
-            x = center_x + math.cos(angle) * radius
-            y = center_y + math.sin(angle) * radius
+            angle = (i / nodes) * 6.28 + t * 0.18
+            r = 25 + 12 * math.sin(t + i * 0.35)
+            x = cx + math.cos(angle) * r
+            y = cy + math.sin(angle) * r
             node_pos.append((x, y))
-            draw.ellipse([x - 5, y - 5, x + 5, y + 5], fill=self.palette["primary"])
+            draw = ImageDraw.Draw(img)
+            draw.ellipse([x - 4, y - 4, x + 4, y + 4], fill=self.palette["primary"])
 
         # Connections
         for i in range(len(node_pos)):
             for j in range(i + 1, len(node_pos)):
                 x1, y1 = node_pos[i]
                 x2, y2 = node_pos[j]
-                dist = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
-                if dist < 70:
-                    alpha = int(150 * (1 - dist / 70))
-                    color = tuple(
-                        int(c * alpha / 255) for c in self.palette["secondary"]
-                    )
-                    draw.line([x1, y1, x2, y2], fill=color, width=1)
+                d = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+                if d < 60:
+                    alpha = int(180 * (1 - d / 60))
+                    c = tuple(int(v * alpha / 255) for v in self.palette["secondary"])
+                    draw = ImageDraw.Draw(img)
+                    draw.line([x1, y1, x2, y2], fill=c, width=1)
 
-        # Orbiting particles
-        count = self.get_particle_count(metric_value)
+        # Orbiting
+        count = max(5, min(15, int(math.log(max(1, metric_value + 1)) * 4)))
         for i in range(count):
-            angle = (i / count) * 2 * math.pi + time * 0.5
-            radius = 20 + 10 * math.sin(time + i * 0.25)
-            x = center_x + math.cos(angle) * radius
-            y = center_y + math.sin(angle) * radius
-            self.system.spawn(
-                x, y, 1, (1.5, 2.5), (0.1, 0.25), self.palette["glow"], 0.4, 0.015
-            )
+            angle = (i / count) * 6.28 + t * 0.6
+            r = 18 + 8 * math.sin(t + i * 0.25)
+            x = cx + math.cos(angle) * r
+            y = cy + math.sin(angle) * r
+            self.system.spawn(x, y, 1, 1.5, 0.2, self.palette["glow"], 0.45, 0.018)
 
         self.system.update()
-        self.system.render(img, glow=True)
-        return img
+        new_img = self.system.render(img)
+        img.paste(new_img, (0, 0))
 
 
-def hstack_images(images):
+def hstack(images):
     if not images:
-        raise ValueError("No images to stack")
-    widths, heights = zip(*(img.size for img in images))
-    max_h = max(heights)
-    total_w = sum(widths)
-    result = Image.new("RGB", (total_w, max_h))
+        raise ValueError("No images")
+    ws, hs = zip(*(i.size for i in images))
+    h = max(hs)
+    w = sum(ws)
+    res = Image.new("RGB", (w, h))
     x = 0
     for img in images:
-        result.paste(img, (x, (max_h - img.height) // 2))
+        res.paste(img, (x, (h - img.height) // 2))
         x += img.width
-    return result
+    return res
 
 
-def vstack_images(images):
-    if not images:
-        raise ValueError("No images to stack")
-    widths, heights = zip(*(img.size for img in images))
-    max_w = max(widths)
-    total_h = sum(heights)
-    result = Image.new("RGB", (max_w, total_h))
-    y = 0
-    for img in images:
-        result.paste(img, ((max_w - img.width) // 2, y))
-        y += img.height
-    return result
-
-
-def create_combined_gif(frame_paths, output_path, fps=10):
-    print("Creating combined dashboard...")
+def make_dashboard(gif_paths, out_path, fps=12):
+    print("  Combining into dashboard...")
     all_frames = []
-    for path in frame_paths:
+    for p in gif_paths:
         try:
             frames = []
-            with Image.open(path) as img:
-                while True:
-                    frames.append(img.copy())
-                    try:
+            with Image.open(p) as img:
+                try:
+                    while True:
+                        frames.append(img.copy())
                         img.seek(img.tell() + 1)
-                    except EOFError:
-                        break
+                except EOFError:
+                    pass
             all_frames.append(frames)
-            print(f"  Loaded {len(frames)} frames from {path}")
+            print(f"    {p}: {len(frames)} frames")
         except Exception as e:
-            print(f"  Warning: Could not load {path}: {e}")
-            all_frames.append([Image.new("RGB", (200, 120), (30, 30, 40))])
+            print(f"    Warning: {p} - {e}")
+            all_frames.append([Image.new("RGB", (200, 120), (25, 25, 35))])
 
-    min_frames = min(len(f) for f in all_frames)
-    print(f"  Combining {min_frames} frames each...")
+    min_f = min(len(f) for f in all_frames)
+    print(f"    Using {min_f} frames each...")
 
-    combined = []
-    for i in range(min_frames):
-        row = []
-        for frames in all_frames:
-            row.append(
-                frames[min(i, len(frames) - 1)].resize((200, 120), Image.LANCZOS)
-            )
-        dashboard = hstack_images(row)
-        combined.append(dashboard)
+    result = []
+    for i in range(min_f):
+        row = [
+            f[min(i, len(f) - 1)].resize((200, 120), Image.LANCZOS) for f in all_frames
+        ]
+        result.append(hstack(row))
 
-    combined[0].save(
-        output_path,
+    result[0].save(
+        out_path,
         save_all=True,
-        append_images=combined[1:],
+        append_images=result[1:],
         duration=int(1000 / fps),
         loop=0,
         optimize=True,
     )
-    print(f"  Saved: {output_path}")
+    print(f"    Saved: {out_path}")
 
 
 def main():
     print("=" * 50)
-    print("GitHub Metrics Dashboard Generator")
+    print("GitHub Metrics Dashboard")
+    print(f"⭐ {stars} | 🍴 {forks} | 📋 {issues} | 👥 {contributors}")
     print("=" * 50)
-    print(f"Metrics: ⭐ {stars} | 🍴 {forks} | 📋 {issues} | 👥 {contributors}")
-    print("=" * 50)
 
-    width, height = 200, 120
-    fps = 10
-    keyframes = 12
+    w, h = 200, 120
+    fps, frames = 12, 16
 
-    # Generate individual metric GIFs
-    frame_paths = []
+    print("\n🎨 Generating...")
+    paths = []
 
-    print("\n🎨 Generating visualizations...")
-    StarVisualizer(width, height, Colors.STAR, "⭐ Stars").animate(
-        stars, "assets/metric_stars.gif", keyframes, fps
+    StarVisualizer(w, h, Colors.STAR, "⭐ Stars").animate(
+        stars, "assets/metric_stars.gif", frames, fps
     )
-    frame_paths.append("assets/metric_stars.gif")
+    paths.append("assets/metric_stars.gif")
 
-    ForkVisualizer(width, height, Colors.FORK, "🍴 Forks").animate(
-        forks, "assets/metric_forks.gif", keyframes, fps
+    ForkVisualizer(w, h, Colors.FORK, "🍴 Forks").animate(
+        forks, "assets/metric_forks.gif", frames, fps
     )
-    frame_paths.append("assets/metric_forks.gif")
+    paths.append("assets/metric_forks.gif")
 
-    IssueVisualizer(width, height, Colors.ISSUE, "📋 Issues").animate(
-        issues, "assets/metric_issues.gif", keyframes, fps
+    IssueVisualizer(w, h, Colors.ISSUE, "📋 Issues").animate(
+        issues, "assets/metric_issues.gif", frames, fps
     )
-    frame_paths.append("assets/metric_issues.gif")
+    paths.append("assets/metric_issues.gif")
 
-    ContributorVisualizer(width, height, Colors.CONTRIBUTOR, "👥 Contributors").animate(
-        contributors, "assets/metric_contributors.gif", keyframes, fps
+    ContributorVisualizer(w, h, Colors.CONTRIBUTOR, "👥 Contributors").animate(
+        contributors, "assets/metric_contributors.gif", frames, fps
     )
-    frame_paths.append("assets/metric_contributors.gif")
+    paths.append("assets/metric_contributors.gif")
 
-    # Create combined dashboard
-    create_combined_gif(frame_paths, "assets/metrics_dashboard.gif", fps)
+    make_dashboard(paths, "assets/metrics_dashboard.gif", fps)
 
-    print("\n" + "=" * 50)
-    print("✅ Complete! Output: assets/metrics_dashboard.gif")
+    print("\n✅ Done: assets/metrics_dashboard.gif")
     print("=" * 50)
 
 
