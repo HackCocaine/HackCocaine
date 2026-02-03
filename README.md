@@ -29,9 +29,9 @@
 
 <div align="center" style="display: flex; justify-content: center; align-items: flex-start; gap: 20px; flex-wrap: wrap; padding: 20px 0;">
 
-<img src="profile/stats.svg" alt="GitHub Statistics" style="max-width: 100%; width: 467px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
+<img src="./profile/stats.svg" alt="GitHub Statistics" style="max-width: 100%; width: 467px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
 
-<img src="profile/top-langs.svg" alt="Top Languages" style="max-width: 100%; width: 295px; margin-top: 36px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
+<img src="./profile/top-langs.svg" alt="Top Languages" style="max-width: 100%; width: 295px; margin-top: 36px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
 
 </div>
 
