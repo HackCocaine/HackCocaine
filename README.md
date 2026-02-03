@@ -6,9 +6,12 @@
 
 ---
 
-## 📊 Metrics
+## 📊 Metrics Dashboard
 
-<img src="https://github.com/HackCocaine/HackCocaine/raw/main/assets/metrics_dashboard.gif" alt="Metrics Dashboard" width="100%"/>
+<!-- SVG embed for better GitHub compatibility -->
+<object type="image/svg+xml" data="https://github.com/HackCocaine/HackCocaine/raw/main/assets/metrics_dashboard.svg" width="100%" style="max-width:800px;border-radius:8px;">
+  <img src="https://github.com/HackCocaine/HackCocaine/raw/main/assets/metrics_dashboard.gif" alt="Metrics Dashboard" width="100%"/>
+</object>
 
 ---
 
