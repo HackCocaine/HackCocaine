@@ -616,6 +616,44 @@ def create_ping_pong(frames: list[Image.Image]) -> list[Image.Image]:
     return result
 
 
+def hstack_images(images: list[Image.Image]) -> Image.Image:
+    """Horizontal stack of images."""
+    if not images:
+        raise ValueError("No images to stack")
+
+    widths, heights = zip(*(img.size for img in images))
+    max_height = max(heights)
+    total_width = sum(widths)
+
+    result = Image.new("RGB", (total_width, max_height))
+
+    x_offset = 0
+    for img in images:
+        result.paste(img, (x_offset, (max_height - img.height) // 2))
+        x_offset += img.width
+
+    return result
+
+
+def vstack_images(images: list[Image.Image]) -> Image.Image:
+    """Vertical stack of images."""
+    if not images:
+        raise ValueError("No images to stack")
+
+    widths, heights = zip(*(img.size for img in images))
+    max_width = max(widths)
+    total_height = sum(heights)
+
+    result = Image.new("RGB", (max_width, total_height))
+
+    y_offset = 0
+    for img in images:
+        result.paste(img, ((max_width - img.width) // 2, y_offset))
+        y_offset += img.height
+
+    return result
+
+
 def generate_metric_gif(
     visualizer: MetricVisualizer,
     metric_value: int,
@@ -693,13 +731,13 @@ def create_combined_dashboard(
             metric_frames.append(frame.resize((400, 300), Image.LANCZOS))
 
         # 2x2 grid
-        row1 = Image.hstack([metric_frames[0], metric_frames[1]])
-        row2 = Image.hstack([metric_frames[2], metric_frames[3]])
-        dashboard = Image.vstack([row1, row2])
+        row1 = hstack_images([metric_frames[0], metric_frames[1]])
+        row2 = hstack_images([metric_frames[2], metric_frames[3]])
+        dashboard = vstack_images([row1, row2])
 
         # Add title bar
         title_bar = Image.new("RGB", (dashboard.width, 40), (20, 20, 30))
-        dashboard = Image.vstack([title_bar, dashboard])
+        dashboard = vstack_images([title_bar, dashboard])
 
         combined_frames.append(dashboard)
 
