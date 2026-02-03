@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-GitHub Metrics Dashboard - Animated GIF Generator
-Creates smooth, high-resolution particle animations for GitHub README.
+GitHub Metrics Dashboard - Global User Metrics Visualization
+Shows aggregated metrics across all user repositories.
 """
 
 import base64
@@ -11,14 +11,14 @@ import os
 import random
 from pathlib import Path
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 
-# Metrics collection with defaults
+# Global user metrics (aggregated across all repos)
 stars = int(os.environ.get("STARS", "0") or "0")
 forks = int(os.environ.get("FORKS", "0") or "0")
 issues = int(os.environ.get("ISSUES", "0") or "0")
-commits = int(os.environ.get("COMMITS", "0") or "0")
-contributors = int(os.environ.get("CONTRIBUTORS", "0") or "0")
+followers = int(os.environ.get("FOLLOWERS", "0") or "0")
+repos = int(os.environ.get("REPOS", "0") or "0")
 prs_30d = int(os.environ.get("PRS_30D", "0") or "0")
 issues_30d = int(os.environ.get("ISSUES_30D", "0") or "0")
 
@@ -29,8 +29,8 @@ metrics_data = {
     "stars": stars,
     "forks": forks,
     "issues": issues,
-    "commits": commits,
-    "contributors": contributors,
+    "followers": followers,
+    "repos": repos,
     "prs_30d": prs_30d,
     "issues_30d": issues_30d,
 }
@@ -148,8 +148,6 @@ class MetricVisualizer:
         self.palette = palette
         self.label = label
         self.system = ParticleSystem(w, h)
-        self.font_size = max(14, h // 8)
-        self.value_font_size = max(24, h // 5)
 
     def make_frame(self, metric_value, frame_idx, total_frames):
         img = Image.new("RGB", (self.w, self.h), self.palette["bg"])
@@ -159,16 +157,16 @@ class MetricVisualizer:
         bbox = draw.textbbox((0, 0), self.label)
         text_w = bbox[2] - bbox[0]
         draw.text(
-            ((self.w - text_w) / 2, 12), self.label, fill=self.palette["secondary"]
+            ((self.w - text_w) / 2, 15), self.label, fill=self.palette["secondary"]
         )
 
-        # Value (bottom, larger)
+        # Value (bottom)
         value_str = f"{metric_value:,}"
         bbox = draw.textbbox((0, 0), value_str)
         text_w = bbox[2] - bbox[0]
         text_h = bbox[3] - bbox[1]
         draw.text(
-            ((self.w - text_w) / 2, self.h - text_h - 18),
+            ((self.w - text_w) / 2, self.h - text_h - 20),
             value_str,
             fill=self.palette["primary"],
         )
@@ -179,14 +177,14 @@ class MetricVisualizer:
         pass
 
     def animate(self, metric_value, path, frames=30, fps=12):
-        print(f"  {self.label}: {metric_value} ({frames} frames @ {fps}fps)...")
+        print(f"  {self.label}: {metric_value:,} ({frames} frames)...")
         result_frames = []
 
         # Pre-seed particles
         for _ in range(25):
             self.system.spawn(
                 random.uniform(20, self.w - 20),
-                random.uniform(30, self.h - 50),
+                random.uniform(35, self.h - 55),
                 1,
                 2,
                 0.3,
@@ -217,7 +215,6 @@ class StarVisualizer(MetricVisualizer):
         t = frame_idx * 0.2
         cx, cy = self.w / 2, self.h / 2 + 5
 
-        # Orbiting particles
         count = max(12, min(35, int(math.log(max(1, metric_value + 1)) * 8)))
         for i in range(count):
             angle = (i / count) * 6.28 + t * 0.5
@@ -228,10 +225,9 @@ class StarVisualizer(MetricVisualizer):
                 x, y, 1, 2.5, 0.2, self.palette["primary"], 0.6, 0.01, angle + 1.57
             )
 
-        # Background twinkle
         for _ in range(4):
             x = random.uniform(15, self.w - 15)
-            y = random.uniform(35, self.h - 70)
+            y = random.uniform(40, self.h - 75)
             b = 0.4 + 0.5 * math.sin(t * 3 + x * 0.1)
             c = tuple(int(v * b) for v in self.palette["glow"])
             self.system.spawn(x, y, 1, 1.2, 0, c, 0.4, 0.02)
@@ -246,7 +242,6 @@ class ForkVisualizer(MetricVisualizer):
         t = frame_idx * 0.18
         cx, cy = self.w / 2, self.h / 2 + 5
 
-        # Branches
         branches = max(5, min(12, int(math.sqrt(max(1, metric_value + 1))) + 2))
         for i in range(branches):
             angle = (i / branches) * 6.28 - 1.57 + t * 0.15
@@ -256,7 +251,6 @@ class ForkVisualizer(MetricVisualizer):
             draw = ImageDraw.Draw(img)
             draw.line([cx, cy, ex, ey], fill=self.palette["primary"], width=2)
 
-        # Particles
         count = max(10, min(30, int(math.log(max(1, metric_value + 1)) * 5)))
         for i in range(count):
             angle = (i / count) * 6.28 + t * 0.4
@@ -275,7 +269,6 @@ class IssueVisualizer(MetricVisualizer):
         t = frame_idx * 0.25
         cx, cy = self.w / 2, self.h / 2 + 5
 
-        # Pulse rings
         pulse = 25 + 8 * math.sin(t * 2.2)
         for i in range(2):
             rs = pulse + i * 10
@@ -286,7 +279,6 @@ class IssueVisualizer(MetricVisualizer):
                 width=2,
             )
 
-        # Rising
         count = max(8, min(25, max(1, metric_value // 2)))
         for i in range(count):
             y = self.h - 55 - (frame_idx / total_frames) * 75 + 15 * math.sin(t + i)
@@ -304,7 +296,6 @@ class ContributorVisualizer(MetricVisualizer):
         t = frame_idx * 0.15
         cx, cy = self.w / 2, self.h / 2 + 5
 
-        # Nodes
         nodes = max(5, min(14, max(1, metric_value)))
         node_pos = []
         for i in range(nodes):
@@ -316,7 +307,6 @@ class ContributorVisualizer(MetricVisualizer):
             draw = ImageDraw.Draw(img)
             draw.ellipse([x - 4, y - 4, x + 4, y + 4], fill=self.palette["primary"])
 
-        # Connections
         for i in range(len(node_pos)):
             for j in range(i + 1, len(node_pos)):
                 x1, y1 = node_pos[i]
@@ -328,7 +318,6 @@ class ContributorVisualizer(MetricVisualizer):
                     draw = ImageDraw.Draw(img)
                     draw.line([x1, y1, x2, y2], fill=c, width=1)
 
-        # Orbiting
         count = max(8, min(20, int(math.log(max(1, metric_value + 1)) * 4)))
         for i in range(count):
             angle = (i / count) * 6.28 + t * 0.6
@@ -357,7 +346,6 @@ def hstack(images):
 
 
 def create_dashboard(gif_paths, out_path, fps=10):
-    """Create combined dashboard with longer duration."""
     print("  Creating combined dashboard...")
     all_frames = []
     frame_counts = []
@@ -381,7 +369,7 @@ def create_dashboard(gif_paths, out_path, fps=10):
             frame_counts.append(1)
 
     min_frames = min(frame_counts)
-    print(f"    Combining {min_frames} frames each...")
+    print(f"    Combining {min_frames} frames...")
 
     result = []
     for i in range(min_frames):
@@ -391,24 +379,19 @@ def create_dashboard(gif_paths, out_path, fps=10):
             row.append(frame)
         result.append(hstack(row))
 
-    # Save with slower FPS for longer duration
-    duration_ms = int(1000 / fps)  # 100ms = 10fps
     result[0].save(
         out_path,
         save_all=True,
         append_images=result[1:],
-        duration=duration_ms,
+        duration=int(1000 / fps),
         loop=0,
         optimize=True,
         disposal=2,
     )
-    print(
-        f"    Saved: {out_path} ({len(result)} frames, {fps}fps, {duration_ms}ms/frame)"
-    )
+    print(f"    Saved: {out_path}")
 
 
 def create_svg_embedded_gif(gif_path, output_path, width=800, height=200):
-    """Create SVG that embeds GIF for better GitHub README compatibility."""
     print("  Creating SVG embed...")
 
     with open(gif_path, "rb") as f:
@@ -416,11 +399,11 @@ def create_svg_embedded_gif(gif_path, output_path, width=800, height=200):
 
     svg = f'''<?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
-  <title>GitHub Metrics Dashboard</title>
-  <desc>Animated particle visualization showing repository metrics: {stars} stars, {forks} forks, {issues} issues, {contributors} contributors</desc>
+  <title>Marcelo Burgos - GitHub Metrics</title>
+  <desc>GitHub metrics: {stars} total stars, {forks} total forks, {issues} open issues across {repos} repositories</desc>
   <foreignObject width="100%" height="100%">
     <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;background:transparent;">
-      <img src="data:image/gif;base64,{gif_data}" alt="Repository Metrics Dashboard showing {stars} stars, {forks} forks, {issues} issues, {contributors} contributors" style="max-width:100%;height:auto;border-radius:8px;background:transparent;"/>
+      <img src="data:image/gif;base64,{gif_data}" alt="GitHub Metrics: {stars} stars, {forks} forks, {issues} issues across {repos} repositories" style="max-width:100%;height:auto;border-radius:8px;background:transparent;"/>
     </div>
   </foreignObject>
 </svg>'''
@@ -432,50 +415,43 @@ def create_svg_embedded_gif(gif_path, output_path, width=800, height=200):
 
 def main():
     print("=" * 60)
-    print("GitHub Metrics Dashboard Generator")
+    print("GitHub Metrics Dashboard - Global User Metrics")
     print("=" * 60)
-    print(f"Metrics: ⭐ {stars} | 🍴 {forks} | 📋 {issues} | 👥 {contributors}")
+    print(f"Stars: {stars:,} | Forks: {forks:,} | Issues: {issues:,}")
+    print(f"Repos: {repos} | Followers: {followers}")
     print("=" * 60)
 
-    # Higher resolution for individual metrics
     w, h = 400, 200
     fps_individual = 12
     frames_individual = 30
-
-    # Slower FPS for dashboard = longer duration
     fps_dashboard = 10
-    # Dashboard uses frames from individual GIFs
 
     print("\n🎨 Generating high-resolution animations...")
     paths = []
 
-    StarVisualizer(w, h, Colors.STAR, "⭐ Stars").animate(
+    # Use stars, forks, issues, and repos (repositories)
+    StarVisualizer(w, h, Colors.STAR, "⭐ Total Stars").animate(
         stars, "assets/metric_stars.gif", frames_individual, fps_individual
     )
     paths.append("assets/metric_stars.gif")
 
-    ForkVisualizer(w, h, Colors.FORK, "🍴 Forks").animate(
+    ForkVisualizer(w, h, Colors.FORK, "🍴 Total Forks").animate(
         forks, "assets/metric_forks.gif", frames_individual, fps_individual
     )
     paths.append("assets/metric_forks.gif")
 
-    IssueVisualizer(w, h, Colors.ISSUE, "📋 Issues").animate(
+    IssueVisualizer(w, h, Colors.ISSUE, "📋 Open Issues").animate(
         issues, "assets/metric_issues.gif", frames_individual, fps_individual
     )
     paths.append("assets/metric_issues.gif")
 
-    ContributorVisualizer(w, h, Colors.CONTRIBUTOR, "👥 Contributors").animate(
-        contributors,
-        "assets/metric_contributors.gif",
-        frames_individual,
-        fps_individual,
+    # Use followers for the 4th metric instead of contributors
+    ContributorVisualizer(w, h, Colors.CONTRIBUTOR, "👥 Followers").animate(
+        followers, "assets/metric_followers.gif", frames_individual, fps_individual
     )
-    paths.append("assets/metric_contributors.gif")
+    paths.append("assets/metric_followers.gif")
 
-    # Create combined dashboard (uses same frames, just arranged in grid)
     create_dashboard(paths, "assets/metrics_dashboard.gif", fps_dashboard)
-
-    # Create SVG embed
     create_svg_embedded_gif(
         "assets/metrics_dashboard.gif",
         "assets/metrics_dashboard.svg",
@@ -485,10 +461,8 @@ def main():
 
     print("\n" + "=" * 60)
     print("✅ Done!")
-    print(f"   Individual resolution: {w}x{h}")
-    print(f"   Dashboard resolution: 800x200 (4 metrics @ 400x200 each)")
-    print(f"   Individual FPS: {fps_individual} ({1000 / fps_individual:.0f}ms/frame)")
-    print(f"   Dashboard FPS: {fps_dashboard} ({1000 / fps_dashboard:.0f}ms/frame)")
+    print(f"   Resolution: 400x200 per metric, 800x200 dashboard")
+    print(f"   Dashboard shows: Stars, Forks, Issues, Followers")
     print("=" * 60)
 
 
