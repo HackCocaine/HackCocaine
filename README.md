@@ -1,13 +1,9 @@
 <div align="center">
-
 # 👋 Marcelo Burgos
 
 **We are only particles dancing in the quantum foam of existence**
-
 ---
-
 ## 📊 GitHub Profile Metrics
-
 *Animated metrics across all repositories - updated in real-time*
 
 <table align="center" border="0" cellpadding="0" cellspacing="0" style="border: none; width: 100%; max-width: 100%;">
@@ -30,7 +26,6 @@
 </table>
 
 ---
-
 ## 📈 GitHub Statistics
 
 <div align="center" style="display: flex; justify-content: center; align-items: flex-start; gap: 20px; flex-wrap: wrap; padding: 20px 0;">
