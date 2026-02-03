@@ -30,8 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install diffusers transformers accelerate safetensors pillow imageio imageio-ffmpeg
+          pip install pillow numpy imageio imageio-ffmpeg
 
       - name: Fetch GitHub Metrics (Authenticated)
         id: metrics
@@ -40,24 +39,20 @@ jobs:
         run: |
           AUTH_HEADER="Authorization: Bearer $METRICS_TOKEN"
           
-          # Basic metrics (authenticated for higher rate limits)
+          # Basic metrics
           REPO_DATA=$(curl -s -H "$AUTH_HEADER" "https://api.github.com/repos/${GITHUB_REPOSITORY}")
           STARS=$(echo "$REPO_DATA" | jq '.stargazers_count')
           FORKS=$(echo "$REPO_DATA" | jq '.forks_count')
           ISSUES=$(echo "$REPO_DATA" | jq '.open_issues_count')
           
-          # Deep metrics - Activity data
+          # Deep metrics
           COMMITS=$(curl -s -H "$AUTH_HEADER" "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits?per_page=1" | grep -o '"sha"' | wc -l)
-          
-          # Contributors count
           CONTRIBUTORS=$(curl -s -H "$AUTH_HEADER" "https://api.github.com/repos/${GITHUB_REPOSITORY}/contributors?per_page=1" | grep -o '"login"' | wc -l)
           
-          # Recent activity (last 30 days)
           SINCE_DATE=$(date -d "30 days ago" +%Y-%m-%dT%H:%M:%SZ)
           PRS_LAST_30D=$(curl -s -H "$AUTH_HEADER" "https://api.github.com/search/issues?q=repo:${GITHUB_REPOSITORY}+is:pr+created:>=${SINCE_DATE}" | jq '.total_count')
           ISSUES_LAST_30D=$(curl -s -H "$AUTH_HEADER" "https://api.github.com/search/issues?q=repo:${GITHUB_REPOSITORY}+is:issue+created:>=${SINCE_DATE}-is:pr" | jq '.total_count')
           
-          # Output all metrics
           echo "stars=$STARS" >> $GITHUB_OUTPUT
           echo "forks=$FORKS" >> $GITHUB_OUTPUT
           echo "issues=$ISSUES" >> $GITHUB_OUTPUT
@@ -75,12 +70,10 @@ jobs:
           CONTRIBUTORS: ${{ steps.metrics.outputs.contributors }}
           PRS_30D: ${{ steps.metrics.outputs.prs_30d }}
           ISSUES_30D: ${{ steps.metrics.outputs.issues_30d }}
-          METRICS_TOKEN: ${{ secrets.METRICS_TOKEN }}
         run: python generate_metrics.py
 
       - name: Update README
         run: |
-          # Update to use GIF instead of static images
           BLOCK='<p align="center"><img src="assets/metrics_dashboard.gif" alt="Repository Metrics Dashboard" width="100%"/></p>'
           perl -i -0pe 's/<!-- METRICS_IMAGE -->.*<!-- \/METRICS_IMAGE -->/$ENV{BLOCK}/smg' README.md
 
@@ -89,11 +82,9 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Stage only files that exist
-          git add README.md assets/ || true
-          git add metrics_data.json prompts.json 2>/dev/null || true
+          git add README.md assets/ 2>/dev/null || true
+          git add metrics_data.json 2>/dev/null || true
           
-          # Check if there are changes to commit
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
