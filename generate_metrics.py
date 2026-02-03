@@ -172,11 +172,12 @@ def generate_particle_gif(
     pipe.enable_attention_slicing()
     pipe.enable_model_cpu_offload()
 
-    # GIF settings - optimized for GitHub Actions
-    num_frames = 8  # Balanced between smoothness and render time
-    fps = 8  # Frames per second for smooth playback
+    # GIF settings - optimized for maximum fluidity
+    num_key_frames = 6  # Key frames for base animation
+    fps = 12  # Higher FPS for smoother playback
+    num_interpolated = 2  # Crossfade frames between keyframes
 
-    print(f"Generating {num_frames} frames for smooth loop...")
+    print(f"Generating {num_key_frames} key frames with crossfade...")
 
     # Generate frames for each metric category
     all_frames = []
@@ -191,63 +192,124 @@ def generate_particle_gif(
         print(f"Processing {metric_name}: {metric_value}")
 
         metric_frames = []
-        for frame_num in range(num_frames):
+        for frame_num in range(num_key_frames):
             prompt, negative_prompt = create_particle_prompt(
-                metric_name, metric_value, frame_num, num_frames
+                metric_name, metric_value, frame_num, num_key_frames
             )
 
             # Generate frame with low inference steps for speed
             output = pipe(
                 prompt=prompt,
                 negative_prompt=negative_prompt,
-                num_frames=1,  # Generate one frame at a time
+                num_frames=1,
                 guidance_scale=1.5,
-                num_inference_steps=6,  # Low for speed
+                num_inference_steps=6,
                 generator=torch.Generator("cpu").manual_seed(frame_num * 42),
-                height=400,
-                width=800,
+                height=320,  # Lower resolution for faster rendering
+                width=640,
             )
 
             frame = output.images[0]
             metric_frames.append(frame)
 
-        # Resize frames to consistent size and create grid
-        metric_frames = [f.resize((400, 200), Image.LANCZOS) for f in metric_frames]
+        # Resize frames to consistent size
+        metric_frames = [f.resize((320, 160), Image.LANCZOS) for f in metric_frames]
         all_frames.extend(metric_frames)
 
-    # Create a combined dashboard layout
-    print("Creating combined dashboard visualization...")
+    # Create fluid dashboard with crossfade and ping-pong loop
+    print("Creating fluid dashboard with crossfade animation...")
+
+    # Function to apply crossfade blend between two frames
+    def blend_frames(
+        frame1: Image.Image, frame2: Image.Image, blend_factor: float
+    ) -> Image.Image:
+        """Blend two frames for smooth crossfade effect."""
+        blended = Image.blend(
+            frame1.convert("RGBA"), frame2.convert("RGBA"), blend_factor
+        )
+        return blended.convert("RGB")
+
+    # Create ping-pong sequence (forward + backward for seamless loop)
+    def create_ping_pong_frames(frames: list, num_interpolated: int = 2) -> list:
+        """Create smooth ping-pong animation with frame interpolation."""
+        if len(frames) < 2:
+            return frames
+
+        result = []
+        for i in range(len(frames)):
+            result.append(frames[i])
+            if i < len(frames) - 1:
+                # Add interpolated crossfade frames between keyframes
+                for j in range(1, num_interpolated + 1):
+                    blend_factor = j / (num_interpolated + 1)
+                    blended = blend_frames(frames[i], frames[i + 1], blend_factor)
+                    result.append(blended)
+
+        # Add reverse sequence for ping-pong (seamless loop)
+        reverse_frames = result[
+            -2:0:-1
+        ]  # Exclude first and last to avoid duplicate frames
+        result.extend(reverse_frames)
+
+        return result
+
     dashboard_frames = []
 
-    for frame_idx in range(num_frames):
-        # Create 2x2 grid for 4 metrics
-        frame_images = []
+    for metric_idx in range(4):
+        # Get frames for this metric
+        start_idx = metric_idx * num_key_frames
+        metric_keyframes = all_frames[start_idx : start_idx + num_key_frames]
+
+        # Create fluid animation with ping-pong and crossfade
+        fluid_frames = create_ping_pong_frames(metric_keyframes, num_interpolated)
+        dashboard_frames.append(fluid_frames)
+
+    # Build final dashboard grid with consistent frame count
+    base_frames = dashboard_frames[0]
+
+    final_dashboard_frames = []
+    for frame_idx in range(len(base_frames)):
+        row_frames = []
         for metric_idx in range(4):
-            frame_images.append(all_frames[metric_idx * num_frames + frame_idx])
+            # Ensure all metrics have the same number of frames
+            metric_frames = dashboard_frames[metric_idx]
+            if frame_idx < len(metric_frames):
+                row_frames.append(metric_frames[frame_idx])
+            else:
+                row_frames.append(metric_frames[-1])
 
         # Combine into 2x2 grid
-        row1 = Image.hstack([frame_images[0], frame_images[1]])
-        row2 = Image.hstack([frame_images[2], frame_images[3]])
+        row1 = Image.hstack([row_frames[0], row_frames[1]])
+        row2 = Image.hstack([row_frames[2], row_frames[3]])
         dashboard = Image.vstack([row1, row2])
 
         # Add subtle title bar
-        title_bar = Image.new("RGB", (dashboard.width, 40), (20, 20, 30))
+        title_bar = Image.new("RGB", (dashboard.width, 30), (20, 20, 30))
         dashboard = Image.vstack([title_bar, dashboard])
 
-        dashboard_frames.append(dashboard)
+        final_dashboard_frames.append(dashboard)
 
-    # Export to GIF
+    # Export to GIF with higher FPS for fluidity
     print(f"Exporting to {output_filename}...")
     export_to_gif(
-        dashboard_frames,
+        final_dashboard_frames,
         output_filename,
         fps=fps,
-        loop=0,  # Infinite loop
+        loop=0,
     )
 
+    # Calculate total frames for info
+    total_frames = len(final_dashboard_frames)
+    loop_duration = total_frames / fps
+
     print(f"✅ GIF generated successfully: {output_filename}")
-    print(f"   - Frames: {len(dashboard_frames)}")
+    print(f"   - Key frames: {num_key_frames}")
+    print(f"   - Total frames (crossfade + ping-pong): {total_frames}")
     print(f"   - FPS: {fps}")
+    print(f"   - Loop duration: {loop_duration:.1f}s")
+    print(f"   - Resolution: 640x350")
+
+    return output_filename
     print(f"   - Loop: infinite")
 
     return output_filename
