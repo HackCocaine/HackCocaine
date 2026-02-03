@@ -1,3 +1,5 @@
+<img width="3840" height="2160" alt="IntroBinaryGravityNeuralSTFT_ManimCE_v0 19 2" src="https://github.com/user-attachments/assets/e2810ed5-a2cd-4a7b-b6e4-7811d3140d53" />
+
 <div align="center">
   
 **We are only particles dancing in the quantum foam of existence**
