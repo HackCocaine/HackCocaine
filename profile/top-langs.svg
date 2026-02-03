@@ -1,65 +1,136 @@
+<svg
+  width="295"
+  height="130"
+  viewBox="0 0 295 130"
+  fill="none"
+  xmlns="http://www.w3.org/2000/svg"
+  role="img"
+  aria-labelledby="descId"
+>
+  <title id="titleId"></title>
+  <desc id="descId"></desc>
+  <style>
+    .header {
+      font: 600 18px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif;
+      fill: #58a6ff;
+      animation: fadeInAnimation 0.8s ease-in-out forwards;
+    }
+    @supports(-moz-appearance: auto) {
+      .header { font-size: 15.5px; }
+    }
 
-      <svg
-        width="400"
-        height="115"
-        viewBox="0 0 400 115"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-        role="img"
-        aria-labelledby="descId"
-      >
-        <title id="titleId">Top Languages</title>
-        <desc id="descId">Most used programming languages</desc>
-        <style>
-          .header {
-            font: 600 16px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif;
-            fill: #58a6ff;
-          }
-          .lang-name {
-            font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif; fill: #c9d1d9;
-          }
-          .lang-bar {
-            fill: #58a6ff;
-          }
-          @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-          }
-        </style>
+    .lang-name {
+      font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif;
+      fill: #c9d1d9;
+    }
 
-        <!-- Dark Background -->
-        <rect
-          x="0"
-          y="0"
-          rx="8"
-          height="115"
-          width="400"
-          fill="#0d1117"
-          stroke="#30363d"
-        />
+    .stagger {
+      opacity: 0;
+      animation: fadeInAnimation 0.3s ease-in-out forwards;
+    }
 
-        <!-- Header -->
-        <g transform="translate(20, 28)">
-          <text x="0" y="0" class="header">Top Languages</text>
+    @keyframes fadeInAnimation {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    /* Animations */
+    @keyframes scaleInAnimation {
+      from { transform: translate(-5px, 5px) scale(0); }
+      to { transform: translate(-5px, 5px) scale(1); }
+    }
+    @keyframes fadeInAnimation {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    @keyframes slideInAnimation {
+      from { transform: translateX(-10px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes bounceInAnimation {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.05); }
+      70% { transform: scale(0.9); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+  </style>
+
+  <!-- Card Background - Dark Theme -->
+  <rect
+    data-testid="card-bg"
+    x="0.5"
+    y="0.5"
+    rx="8"
+    height="129"
+    stroke="#30363d"
+    width="294"
+    fill="#0d1117"
+    stroke-opacity="1.0"
+  />
+
+  <!-- Header -->
+  <g data-testid="card-title" transform="translate(22, 35)">
+    <g transform="translate(0, 0)">
+      <text x="0" y="0" class="header" data-testid="header">Most Used Languages</text>
+    </g>
+  </g>
+
+  <!-- Main Card Body -->
+  <g data-testid="main-card-body" transform="translate(22, 60)">
+
+    <!-- Language Progress Bars -->
+    <svg data-testid="lang-items" x="0" y="0" width="251" height="50">
+
+      <!-- Bar 1: JavaScript 39.73% -->
+      <rect data-testid="lang-progress" x="0" y="0" width="99.34" height="8" fill="#f1e05a" rx="4"/>
+
+      <!-- Bar 2: HTML 34.26% -->
+      <rect data-testid="lang-progress" x="104.34" y="0" width="85.65" height="8" fill="#e34c26" rx="4"/>
+
+      <!-- Bar 3: Python 25.70% -->
+      <rect data-testid="lang-progress" x="195" y="0" width="55.84" height="8" fill="#3572A5" rx="4"/>
+
+      <!-- Bar 4: CSS 0.31% -->
+      <rect data-testid="lang-progress" x="0" y="22" width="0.78" height="8" fill="#663399" rx="4"/>
+
+    </svg>
+
+    <!-- Language Labels - 2 Column Layout -->
+    <g transform="translate(0, 28)">
+
+      <!-- JavaScript -->
+      <g transform="translate(0, 0)">
+        <g class="stagger" style="animation-delay: 450ms">
+          <circle cx="5" cy="6" r="5" fill="#f1e05a"/>
+          <text data-testid="lang-name" x="15" y="10" class="lang-name">JavaScript 39.73%</text>
         </g>
+      </g>
 
-        <!-- Language Bars (Compact Layout) -->
-        <g transform="translate(20, 50)">
-          <!-- JavaScript -->
-          <g transform="translate(0, 0)">
-            <rect class="lang-bar" x="0" y="0" width="158" height="8" rx="4" fill="#f1e05a" opacity="0.9"/>
-            <text class="lang-name" x="168" y="8">JavaScript 39.7%</text>
-          </g>
-
-          <!-- HTML -->
-          <g transform="translate(0, 22)">
-            <rect x="0" y="0" width="136" height="8" rx="4" fill="#e34c26" opacity="0.9"/>
-            <text class="lang-name" x="168" y="8">HTML 34.3%</text>
-          </g>
-
-          <!-- Python -->
-          <g transform="translate(0, 44)">
-            <rect x="0" y="0" width="102" height="8" rx="4" fill="#3572A5" opacity="0.9"/>
-            <text class="lang-name" x="168" y="8">Python 25.7%</text>
-          </g>
+      <!-- HTML -->
+      <g transform="translate(125, 0)">
+        <g class="stagger" style="animation-delay: 600ms">
+          <circle cx="5" cy="6" r="5" fill="#e34c26"/>
+          <text data-testid="lang-name" x="15" y="10" class="lang-name">HTML 34.26%</text>
         </g>
+      </g>
+
+      <!-- Python -->
+      <g transform="translate(0, 22)">
+        <g class="stagger" style="animation-delay: 750ms">
+          <circle cx="5" cy="6" r="5" fill="#3572A5"/>
+          <text data-testid="lang-name" x="15" y="10" class="lang-name">Python 25.70%</text>
+        </g>
+      </g>
+
+      <!-- CSS -->
+      <g transform="translate(125, 22)">
+        <g class="stagger" style="animation-delay: 900ms">
+          <circle cx="5" cy="6" r="5" fill="#663399"/>
+          <text data-testid="lang-name" x="15" y="10" class="lang-name">CSS 0.31%</text>
+        </g>
+      </g>
+
+    </g>
+
+  </g>
+</svg>
