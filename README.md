@@ -1,6 +1,4 @@
 <div align="center">
-# 👋 Marcelo Burgos
-
 **We are only particles dancing in the quantum foam of existence**
 ---
 ## 📊 GitHub Profile Metrics
@@ -85,7 +83,5 @@
 </div>
 
 ---
-
-*GitHub metrics are aggregated across all repositories. Last updated: February 2025*
 
 </div>
