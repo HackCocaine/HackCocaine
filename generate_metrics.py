@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """
-GitHub Metrics Dashboard - Particle Animation Generator
-Creates beautiful animated visualizations with persistent particle systems.
+GitHub Metrics Dashboard - Animated GIF Generator
+Creates smooth, persistent particle animations for GitHub README.
 """
 
+import base64
 import json
 import math
 import os
@@ -68,11 +69,11 @@ class Particle:
     def __init__(self, x, y, vx, vy, size, color, life=1.0, decay=0.02):
         self.x, self.y = x, y
         self.vx, self.vy = vx, vy
-        self.base_size = max(0.5, size)
+        self.base_size = max(0.5, float(size))
         self.size = self.base_size
         self.color = color
-        self.life = min(1.0, max(0.1, life))
-        self.decay = max(0.005, min(0.05, decay))
+        self.life = min(1.0, max(0.1, float(life)))
+        self.decay = max(0.005, min(0.05, float(decay)))
         self.pulse = random.random() * 6.28
 
     def update(self):
@@ -151,30 +152,23 @@ class MetricVisualizer:
     def make_frame(self, metric_value, frame_idx, total_frames):
         img = Image.new("RGB", (self.w, self.h), self.palette["bg"])
         draw = ImageDraw.Draw(img)
-
-        # Label
-        lw = draw.textlength(self.label)
-        draw.text(((self.w - lw) / 2, 10), self.label, fill=self.palette["secondary"])
-
-        # Value
-        val = f"{metric_value:,}"
-        vw = draw.textlength(val)
-        vh = 18
-        draw.text(
-            ((self.w - vw) / 2, self.h - vh - 8), val, fill=self.palette["primary"]
-        )
-
+        draw.text((10, 10), self.label, fill=self.palette["secondary"])
+        draw.text((10, self.h - 20), str(metric_value), fill=self.palette["primary"])
         return img
 
-    def animate(self, metric_value, path, frames=16, fps=12):
-        print(f"  {self.label}: {frames} frames...")
+    def animate_frame(self, img, metric_value, frame_idx, total_frames):
+        """Override in subclasses for animation logic."""
+        pass
+
+    def animate(self, metric_value, path, frames=24, fps=15):
+        print(f"  {self.label}: {frames} frames @ {fps}fps...")
         result_frames = []
 
-        # Initialize system with some particles
-        for _ in range(15):
+        # Pre-seed particles
+        for _ in range(20):
             self.system.spawn(
-                self.w / 2 + random.uniform(-40, 40),
-                self.h / 2 + random.uniform(-20, 20),
+                random.uniform(20, self.w - 20),
+                random.uniform(20, self.h - 30),
                 1,
                 2,
                 0.3,
@@ -188,6 +182,7 @@ class MetricVisualizer:
             self.animate_frame(frame, metric_value, i, frames)
             result_frames.append(frame)
 
+        # Save as GIF with optimization
         result_frames[0].save(
             path,
             save_all=True,
@@ -195,11 +190,9 @@ class MetricVisualizer:
             duration=int(1000 / fps),
             loop=0,
             optimize=True,
+            disposal=2,  # Clear before next frame for cleaner animation
         )
-        print(f"    Saved: {path}")
-
-    def animate_frame(self, img, metric_value, frame_idx, total_frames):
-        pass
+        print(f"    Saved: {path} ({len(result_frames)} frames)")
 
 
 class StarVisualizer(MetricVisualizer):
@@ -208,7 +201,7 @@ class StarVisualizer(MetricVisualizer):
         cx, cy = self.w / 2, self.h / 2 + 5
 
         # Orbiting particles
-        count = max(8, min(25, int(math.log(max(1, metric_value + 1)) * 8)))
+        count = max(10, min(30, int(math.log(max(1, metric_value + 1)) * 8)))
         for i in range(count):
             angle = (i / count) * 6.28 + t * 0.5
             r = 35 + 12 * math.sin(t * 2 + i * 0.3)
@@ -218,10 +211,10 @@ class StarVisualizer(MetricVisualizer):
                 x, y, 1, 2.5, 0.2, self.palette["primary"], 0.6, 0.01, angle + 1.57
             )
 
-        # Twinkling background
-        for _ in range(2):
-            x = random.uniform(20, self.w - 20)
-            y = random.uniform(35, self.h - 55)
+        # Background twinkle
+        for _ in range(3):
+            x = random.uniform(15, self.w - 15)
+            y = random.uniform(30, self.h - 60)
             b = 0.4 + 0.5 * math.sin(t * 3 + x * 0.1)
             c = tuple(int(v * b) for v in self.palette["glow"])
             self.system.spawn(x, y, 1, 1.2, 0, c, 0.4, 0.02)
@@ -236,8 +229,8 @@ class ForkVisualizer(MetricVisualizer):
         t = frame_idx * 0.18
         cx, cy = self.w / 2, self.h / 2 + 5
 
-        # Branching
-        branches = max(3, min(8, int(math.sqrt(max(1, metric_value + 1))) + 2))
+        # Branches
+        branches = max(4, min(10, int(math.sqrt(max(1, metric_value + 1))) + 2))
         for i in range(branches):
             angle = (i / branches) * 6.28 - 1.57 + t * 0.15
             length = 40 + 8 * math.sin(t + i * 0.4)
@@ -246,8 +239,8 @@ class ForkVisualizer(MetricVisualizer):
             draw = ImageDraw.Draw(img)
             draw.line([cx, cy, ex, ey], fill=self.palette["primary"], width=2)
 
-        # Particles on branches
-        count = max(6, min(20, int(math.log(max(1, metric_value + 1)) * 5)))
+        # Particles
+        count = max(8, min(25, int(math.log(max(1, metric_value + 1)) * 5)))
         for i in range(count):
             angle = (i / count) * 6.28 + t * 0.4
             r = 22 + 18 * abs(math.sin(t * 0.8 + i * 0.2))
@@ -276,8 +269,8 @@ class IssueVisualizer(MetricVisualizer):
                 width=2,
             )
 
-        # Rising particles
-        count = max(5, min(18, max(1, metric_value // 3)))
+        # Rising
+        count = max(6, min(20, max(1, metric_value // 2)))
         for i in range(count):
             y = self.h - 50 - (frame_idx / total_frames) * 70 + 15 * math.sin(t + i)
             x = cx + (i - count / 2) * 12 * math.sin(t + i * 0.4)
@@ -295,7 +288,7 @@ class ContributorVisualizer(MetricVisualizer):
         cx, cy = self.w / 2, self.h / 2 + 5
 
         # Nodes
-        nodes = max(3, min(10, max(1, metric_value)))
+        nodes = max(4, min(12, max(1, metric_value)))
         node_pos = []
         for i in range(nodes):
             angle = (i / nodes) * 6.28 + t * 0.18
@@ -319,7 +312,7 @@ class ContributorVisualizer(MetricVisualizer):
                     draw.line([x1, y1, x2, y2], fill=c, width=1)
 
         # Orbiting
-        count = max(5, min(15, int(math.log(max(1, metric_value + 1)) * 4)))
+        count = max(6, min(18, int(math.log(max(1, metric_value + 1)) * 4)))
         for i in range(count):
             angle = (i / count) * 6.28 + t * 0.6
             r = 18 + 8 * math.sin(t + i * 0.25)
@@ -346,9 +339,11 @@ def hstack(images):
     return res
 
 
-def make_dashboard(gif_paths, out_path, fps=12):
-    print("  Combining into dashboard...")
+def create_dashboard(gif_paths, out_path, fps=15):
+    print("  Creating combined dashboard...")
     all_frames = []
+    frame_counts = []
+
     for p in gif_paths:
         try:
             frames = []
@@ -360,21 +355,25 @@ def make_dashboard(gif_paths, out_path, fps=12):
                 except EOFError:
                     pass
             all_frames.append(frames)
+            frame_counts.append(len(frames))
             print(f"    {p}: {len(frames)} frames")
         except Exception as e:
             print(f"    Warning: {p} - {e}")
-            all_frames.append([Image.new("RGB", (200, 120), (25, 25, 35))])
+            all_frames.append([Image.new("RGB", (200, 100), (25, 25, 35))])
+            frame_counts.append(1)
 
-    min_f = min(len(f) for f in all_frames)
-    print(f"    Using {min_f} frames each...")
+    min_frames = min(frame_counts)
+    print(f"    Combining {min_frames} frames each...")
 
     result = []
-    for i in range(min_f):
-        row = [
-            f[min(i, len(f) - 1)].resize((200, 120), Image.LANCZOS) for f in all_frames
-        ]
+    for i in range(min_frames):
+        row = []
+        for j, frames in enumerate(all_frames):
+            frame = frames[min(i, len(frames) - 1)].resize((200, 100), Image.LANCZOS)
+            row.append(frame)
         result.append(hstack(row))
 
+    # Save with better settings for GitHub
     result[0].save(
         out_path,
         save_all=True,
@@ -382,8 +381,31 @@ def make_dashboard(gif_paths, out_path, fps=12):
         duration=int(1000 / fps),
         loop=0,
         optimize=True,
+        disposal=2,
     )
     print(f"    Saved: {out_path}")
+
+
+def create_svg_embedded_gif(gif_path, output_path, width=800, height=200):
+    """Create SVG that embeds GIF for better GitHub README compatibility."""
+    print("  Creating SVG embed...")
+
+    # Read GIF and encode as base64
+    with open(gif_path, "rb") as f:
+        gif_data = base64.b64encode(f.read()).decode("ascii")
+
+    svg = f'''<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="{width}" height="{height}" viewBox="0 0 {width} {height}">
+  <foreignObject width="100%" height="100%">
+    <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;justify-content:center;align-items:center;width:100%;height:100%;">
+      <img src="data:image/gif;base64,{gif_data}" alt="Metrics Dashboard" style="max-width:100%;height:auto;border-radius:8px;"/>
+    </div>
+  </foreignObject>
+</svg>'''
+
+    with open(output_path, "w") as f:
+        f.write(svg)
+    print(f"    Saved: {output_path}")
 
 
 def main():
@@ -392,35 +414,46 @@ def main():
     print(f"⭐ {stars} | 🍴 {forks} | 📋 {issues} | 👥 {contributors}")
     print("=" * 50)
 
-    w, h = 200, 120
-    fps, frames = 12, 16
+    w, h = 200, 100
+    fps, frames = 15, 24
 
-    print("\n🎨 Generating...")
+    print("\n🎨 Generating animations...")
     paths = []
 
-    StarVisualizer(w, h, Colors.STAR, "⭐ Stars").animate(
+    StarVisualizer(w, h, Colors.STAR, "Stars").animate(
         stars, "assets/metric_stars.gif", frames, fps
     )
     paths.append("assets/metric_stars.gif")
 
-    ForkVisualizer(w, h, Colors.FORK, "🍴 Forks").animate(
+    ForkVisualizer(w, h, Colors.FORK, "Forks").animate(
         forks, "assets/metric_forks.gif", frames, fps
     )
     paths.append("assets/metric_forks.gif")
 
-    IssueVisualizer(w, h, Colors.ISSUE, "📋 Issues").animate(
+    IssueVisualizer(w, h, Colors.ISSUE, "Issues").animate(
         issues, "assets/metric_issues.gif", frames, fps
     )
     paths.append("assets/metric_issues.gif")
 
-    ContributorVisualizer(w, h, Colors.CONTRIBUTOR, "👥 Contributors").animate(
+    ContributorVisualizer(w, h, Colors.CONTRIBUTOR, "Contributors").animate(
         contributors, "assets/metric_contributors.gif", frames, fps
     )
     paths.append("assets/metric_contributors.gif")
 
-    make_dashboard(paths, "assets/metrics_dashboard.gif", fps)
+    # Create combined dashboard
+    create_dashboard(paths, "assets/metrics_dashboard.gif", fps)
 
-    print("\n✅ Done: assets/metrics_dashboard.gif")
+    # Create SVG embed as backup
+    create_svg_embedded_gif(
+        "assets/metrics_dashboard.gif",
+        "assets/metrics_dashboard.svg",
+        width=800,
+        height=200,
+    )
+
+    print("\n✅ Done!")
+    print("   assets/metrics_dashboard.gif")
+    print("   assets/metrics_dashboard.svg")
     print("=" * 50)
 
 
