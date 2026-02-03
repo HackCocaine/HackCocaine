@@ -1,21 +1,27 @@
 #!/usr/bin/env python3
 """
-GitHub Metrics Dashboard GIF Generator
+GitHub Metrics Dashboard - Lightweight Particle Animation Generator
 
-Generates a smooth, particle-based scientific/technological dashboard visualization
-for GitHub repository metrics using AnimateDiff for GIF generation.
+Creates beautiful, smooth particle-based visualizations using pure Python.
+Fast, efficient, and renders in seconds on CPU.
 
-Optimized for GitHub Actions with CPU rendering.
+Visualization Style:
+- Stars: Glowing golden star particles with pulsing core
+- Forks: Network branching particles (紫色/cyan)
+- Issues: Alert/warning pulse particles (orange/red)
+- Contributors: Connected node network particles (green/blue)
+- Activity: Timeline wave particles (blue/purple gradient)
 """
 
 import json
+import math
 import os
+import random
 from pathlib import Path
+from typing import Callable
 
-import torch
-from PIL import Image, ImageDraw, ImageFont
-from diffusers import AnimateDiffPipeline, LCMScheduler, MotionAdapter
-from diffusers.utils import export_to_gif
+import numpy as np
+from PIL import Image, ImageDraw, ImageFilter
 
 # Metrics collection
 stars = int(os.environ.get("STARS", "0"))
@@ -30,7 +36,7 @@ issues_30d = int(os.environ.get("ISSUES_30D", "0"))
 assets_dir = Path("assets")
 assets_dir.mkdir(exist_ok=True)
 
-# Save metrics data for reference
+# Save metrics data
 metrics_data = {
     "stars": stars,
     "forks": forks,
@@ -44,429 +50,730 @@ with open("metrics_data.json", "w") as f:
     json.dump(metrics_data, f, indent=2)
 
 
-def create_particle_prompt(
-    metric_name: str, metric_value: int, frame_num: int, total_frames: int
-) -> tuple[str, str]:
-    """
-    Create a prompt for particle-based scientific visualization with smooth animation.
+# ============================================================================
+# COLOR PALETTES - Aesthetic and modern
+# ============================================================================
+class Colors:
+    """Beautiful color palettes for each metric type."""
 
-    The prompt engineering focuses on:
-    - Particle effects with subtle motion
-    - Scientific/technological aesthetic
-    - Clean, modern dashboard style
-    - Consistent visual language across frames for smooth looping
-    """
-
-    # Base style keywords for particle scientific visualization
-    base_style = (
-        "particle visualization, data particles, digital particles, "
-        "scientific dashboard, tech metrics, modern UI, "
-        "glowing particles, neon particles, light particles, "
-        "smooth gradient, futuristic interface, holographic display, "
-        "minimalist tech, clean design, professional data visualization, "
-        "8k resolution, high detail, cinematic lighting"
-    )
-
-    # Negative prompt to avoid common artifacts
-    negative_prompt = (
-        "ugly, blurry, low quality, distorted, warped, "
-        "text overlay, numbers, labels, clutter, noise, "
-        "grayscale, dull, flat, cartoon, anime, sketch, "
-        "bad anatomy, deformed, extra limbs, mutation"
-    )
-
-    # Frame-specific animation hint for smooth looping
-    frame_phase = frame_num / total_frames
-    if frame_phase < 0.25:
-        animation_hint = "gentle particle emergence, subtle pulse"
-    elif frame_phase < 0.5:
-        animation_hint = "smooth particle flow, steady glow"
-    elif frame_phase < 0.75:
-        animation_hint = "continuous particle motion, stable shimmer"
-    else:
-        animation_hint = "gentle particle convergence, smooth fade"
-
-    # Metric-specific visualization
-    metric_descriptions = {
-        "stars": f"celestial star particles representing {metric_value} stars",
-        "forks": f"branching network particles showing {metric_value} repository forks",
-        "issues": f"data point particles illustrating {metric_value} open issues",
-        "commits": f"timeline particles displaying {metric_value} total commits",
-        "contributors": f"network node particles showing {metric_value} contributors",
-        "activity": f"activity pulse particles for {metric_value} recent events",
+    STAR = {
+        "primary": (255, 200, 80),  # Golden
+        "secondary": (255, 150, 50),  # Orange-gold
+        "glow": (255, 220, 150),  # Light gold
+        "bg": (20, 18, 28),  # Dark background
     }
 
-    prompt = (
-        f"{metric_descriptions.get(metric_name, f'data particles for {metric_name}')}, "
-        f"{base_style}, {animation_hint}, "
-        "particle density, distributed particles, balanced composition, "
-        "soft particle edges, ambient glow, depth of field, "
-        "cyberpunk aesthetics, technological elegance"
-    )
+    FORK = {
+        "primary": (150, 120, 255),  # Purple
+        "secondary": (80, 200, 255),  # Cyan
+        "glow": (200, 180, 255),  # Light purple
+        "bg": (18, 20, 30),
+    }
 
-    return prompt, negative_prompt
+    ISSUE = {
+        "primary": (255, 120, 80),  # Coral
+        "secondary": (255, 180, 100),  # Warm orange
+        "glow": (255, 220, 180),  # Light coral
+        "bg": (25, 20, 20),
+    }
 
+    CONTRIBUTOR = {
+        "primary": (80, 220, 150),  # Mint green
+        "secondary": (100, 180, 255),  # Sky blue
+        "glow": (180, 255, 220),  # Light mint
+        "bg": (18, 22, 25),
+    }
 
-def create_overlay_image(
-    metrics: dict, frame_num: int, total_frames: int
-) -> Image.Image:
-    """
-    Create a clean overlay image with metric labels.
-    This provides consistent text that can be composited over the generated frames.
-    """
-    width, height = 800, 400
-    bg = Image.new("RGBA", (width, height), (0, 0, 0, 0))
-    draw = ImageDraw.Draw(bg)
+    ACTIVITY = {
+        "primary": (120, 150, 255),  # Periwinkle
+        "secondary": (180, 100, 255),  # Violet
+        "glow": (200, 180, 255),  # Light violet
+        "bg": (20, 18, 30),
+    }
 
-    # Semi-transparent dark overlay for text readability
-    overlay = Image.new("RGBA", (width, height), (0, 0, 0, 100))
-    bg = Image.alpha_composite(bg, overlay)
-    draw = ImageDraw.Draw(bg)
-
-    # Note: In a production environment, you would load a .ttf font
-    # For now, we'll create a placeholder visual indicator
-    # The particle visualization itself will carry the meaning
-
-    return bg
+    DASHBOARD_BG = (15, 15, 22)
 
 
-def generate_particle_gif(
-    metrics: dict, output_filename: str = "metrics_dashboard.gif"
-):
-    """
-    Generate a smooth GIF visualization using AnimateDiff with particle effects.
+# ============================================================================
+# PARTICLE SYSTEM - Lightweight and beautiful
+# ============================================================================
+class Particle:
+    """A single particle with position, velocity, and visual properties."""
 
-    Optimized for GitHub Actions CPU rendering:
-    - 8 frames for smooth loop (not too many for CPU)
-    - Low inference steps (6-8) for speed
-    - Attention slicing for memory efficiency
-    - Motion adapter for animation
-    """
+    def __init__(
+        self,
+        x: float,
+        y: float,
+        vx: float,
+        vy: float,
+        size: float,
+        color: tuple,
+        life: float = 1.0,
+        decay: float = 0.01,
+    ):
+        self.x = x
+        self.y = y
+        self.vx = vx
+        self.vy = vy
+        self.size = size
+        self.base_size = size
+        self.color = color
+        self.life = life
+        self.decay = decay
+        self.pulse_phase = random.random() * 2 * math.pi
 
-    print("Loading AnimateDiff pipeline with motion adapter...")
+    def update(self, dt: float = 1.0) -> bool:
+        """Update particle physics. Returns False if dead."""
+        self.x += self.vx * dt
+        self.y += self.vy * dt
+        self.life -= self.decay * dt
+        self.pulse_phase += 0.1 * dt
+        return self.life > 0
 
-    # Load motion adapter for animation
-    adapter = MotionAdapter.from_pretrained("wangfuyun/AnimateLCM")
+    def get_current_size(self) -> float:
+        """Get pulsating size."""
+        pulse = 0.8 + 0.2 * math.sin(self.pulse_phase)
+        return self.base_size * self.life * pulse
 
-    # Use a realistics model compatible with AnimateDiff
-    pipe = AnimateDiffPipeline.from_pretrained(
-        "emilianJR/epiCRealism", motion_adapter=adapter, torch_dtype=torch.float32
-    )
 
-    # Use LCM scheduler for fast inference
-    pipe.scheduler = LCMScheduler.from_config(
-        pipe.scheduler.config, beta_schedule="linear"
-    )
+class ParticleSystem:
+    """Manages a collection of particles with spawning and updates."""
 
-    # Load LCM LoRA for speed
-    pipe.load_lora_weights(
-        "wangfuyun/AnimateLCM",
-        weight_name="sd15_lora_beta.safetensors",
-        adapter_name="lcm-lora",
-    )
+    def __init__(self, width: int, height: int):
+        self.width = width
+        self.height = height
+        self.particles: list[Particle] = []
+        self.time = 0.0
 
-    # Set adapters
-    pipe.set_adapters(["lcm-lora"], [1.0])
+    def clear(self):
+        """Remove all particles."""
+        self.particles.clear()
 
-    # Enable optimizations for CPU
-    pipe.enable_attention_slicing()
-    pipe.enable_model_cpu_offload()
+    def spawn(
+        self,
+        x: float,
+        y: float,
+        count: int = 1,
+        size_range: tuple = (2, 6),
+        speed_range: tuple = (0.5, 2.0),
+        color: tuple = (255, 255, 255),
+        life: float = 1.0,
+        decay: float = 0.01,
+        angle_range: tuple = (0, 2 * math.pi),
+    ):
+        """Spawn particles at a point with radial velocity."""
+        for _ in range(count):
+            angle = random.uniform(*angle_range)
+            speed = random.uniform(*speed_range)
+            vx = math.cos(angle) * speed
+            vy = math.sin(angle) * speed
+            size = random.uniform(*size_range)
 
-    # GIF settings - optimized for maximum fluidity
-    num_key_frames = 6  # Key frames for base animation
-    fps = 12  # Higher FPS for smoother playback
-    num_interpolated = 2  # Crossfade frames between keyframes
+            self.particles.append(Particle(x, y, vx, vy, size, color, life, decay))
 
-    print(f"Generating {num_key_frames} key frames with crossfade...")
-
-    # Generate frames for each metric category
-    all_frames = []
-    metric_categories = [
-        ("stars", stars, "⭐ Stars"),
-        ("forks", forks, "🍴 Forks"),
-        ("issues", issues, "📋 Issues"),
-        ("contributors", contributors, "👥 Contributors"),
-    ]
-
-    for metric_name, metric_value, display_name in metric_categories:
-        print(f"Processing {metric_name}: {metric_value}")
-
-        metric_frames = []
-        for frame_num in range(num_key_frames):
-            prompt, negative_prompt = create_particle_prompt(
-                metric_name, metric_value, frame_num, num_key_frames
-            )
-
-            # Generate frame with low inference steps for speed
-            output = pipe(
-                prompt=prompt,
-                negative_prompt=negative_prompt,
-                num_frames=1,
-                guidance_scale=1.5,
-                num_inference_steps=6,
-                generator=torch.Generator("cpu").manual_seed(frame_num * 42),
-                height=320,  # Lower resolution for faster rendering
-                width=640,
-            )
-
-            frame = output.images[0]
-            metric_frames.append(frame)
-
-        # Resize frames to consistent size
-        metric_frames = [f.resize((320, 160), Image.LANCZOS) for f in metric_frames]
-        all_frames.extend(metric_frames)
-
-    # Create fluid dashboard with crossfade and ping-pong loop
-    print("Creating fluid dashboard with crossfade animation...")
-
-    # Function to apply crossfade blend between two frames
-    def blend_frames(
-        frame1: Image.Image, frame2: Image.Image, blend_factor: float
-    ) -> Image.Image:
-        """Blend two frames for smooth crossfade effect."""
-        blended = Image.blend(
-            frame1.convert("RGBA"), frame2.convert("RGBA"), blend_factor
+    def spawn_burst(
+        self,
+        x: float,
+        y: float,
+        count: int = 10,
+        size: float = 4,
+        speed: float = 3.0,
+        color: tuple = (255, 255, 255),
+        life: float = 1.0,
+    ):
+        """Spawn a burst of particles in all directions."""
+        self.spawn(
+            x,
+            y,
+            count,
+            (size * 0.8, size * 1.2),
+            (speed * 0.5, speed),
+            color,
+            life,
+            0.02,
+            (0, 2 * math.pi),
         )
-        return blended.convert("RGB")
 
-    # Create ping-pong sequence (forward + backward for seamless loop)
-    def create_ping_pong_frames(frames: list, num_interpolated: int = 2) -> list:
-        """Create smooth ping-pong animation with frame interpolation."""
-        if len(frames) < 2:
-            return frames
+    def update(self, dt: float = 1.0) -> int:
+        """Update all particles. Returns count of alive particles."""
+        self.time += dt
+        self.particles = [p for p in self.particles if p.update(dt)]
+        return len(self.particles)
 
-        result = []
-        for i in range(len(frames)):
-            result.append(frames[i])
-            if i < len(frames) - 1:
-                # Add interpolated crossfade frames between keyframes
-                for j in range(1, num_interpolated + 1):
-                    blend_factor = j / (num_interpolated + 1)
-                    blended = blend_frames(frames[i], frames[i + 1], blend_factor)
-                    result.append(blended)
-
-        # Add reverse sequence for ping-pong (seamless loop)
-        reverse_frames = result[
-            -2:0:-1
-        ]  # Exclude first and last to avoid duplicate frames
-        result.extend(reverse_frames)
-
-        return result
-
-    dashboard_frames = []
-
-    for metric_idx in range(4):
-        # Get frames for this metric
-        start_idx = metric_idx * num_key_frames
-        metric_keyframes = all_frames[start_idx : start_idx + num_key_frames]
-
-        # Create fluid animation with ping-pong and crossfade
-        fluid_frames = create_ping_pong_frames(metric_keyframes, num_interpolated)
-        dashboard_frames.append(fluid_frames)
-
-    # Build final dashboard grid with consistent frame count
-    base_frames = dashboard_frames[0]
-
-    final_dashboard_frames = []
-    for frame_idx in range(len(base_frames)):
-        row_frames = []
-        for metric_idx in range(4):
-            # Ensure all metrics have the same number of frames
-            metric_frames = dashboard_frames[metric_idx]
-            if frame_idx < len(metric_frames):
-                row_frames.append(metric_frames[frame_idx])
-            else:
-                row_frames.append(metric_frames[-1])
-
-        # Combine into 2x2 grid
-        row1 = Image.hstack([row_frames[0], row_frames[1]])
-        row2 = Image.hstack([row_frames[2], row_frames[3]])
-        dashboard = Image.vstack([row1, row2])
-
-        # Add subtle title bar
-        title_bar = Image.new("RGB", (dashboard.width, 30), (20, 20, 30))
-        dashboard = Image.vstack([title_bar, dashboard])
-
-        final_dashboard_frames.append(dashboard)
-
-    # Export to GIF with higher FPS for fluidity
-    print(f"Exporting to {output_filename}...")
-    export_to_gif(
-        final_dashboard_frames,
-        output_filename,
-        fps=fps,
-        loop=0,
-    )
-
-    # Calculate total frames for info
-    total_frames = len(final_dashboard_frames)
-    loop_duration = total_frames / fps
-
-    print(f"✅ GIF generated successfully: {output_filename}")
-    print(f"   - Key frames: {num_key_frames}")
-    print(f"   - Total frames (crossfade + ping-pong): {total_frames}")
-    print(f"   - FPS: {fps}")
-    print(f"   - Loop duration: {loop_duration:.1f}s")
-    print(f"   - Resolution: 640x350")
-
-    return output_filename
-    print(f"   - Loop: infinite")
-
-    return output_filename
-
-
-def create_fallback_static_images(metrics: dict):
-    """
-    Create fallback static images if AnimateDiff is not available.
-    Uses simple particle-like visualization with PIL.
-    """
-
-    print("Creating fallback static particle visualizations...")
-
-    metric_categories = [
-        ("stars", stars, "⭐"),
-        ("forks", forks, "🍴"),
-        ("issues", issues, "📋"),
-        ("contributors", contributors, "👥"),
-    ]
-
-    for i, (metric_name, metric_value, icon) in enumerate(metric_categories):
-        # Create a clean visualization
-        width, height = 800, 400
-
-        # Dark background
-        img = Image.new("RGB", (width, height), color=(15, 15, 25))
+    def render(self, img: Image.Image, glow: bool = True):
+        """Render particles onto image with optional glow effect."""
         draw = ImageDraw.Draw(img)
 
-        # Draw particle-like circles
-        import random
+        if glow:
+            # Create glow layer
+            glow_img = Image.new("RGBA", img.size, (0, 0, 0, 0))
+            glow_draw = ImageDraw.Draw(glow_img)
 
-        random.seed(42 + i)  # Consistent for each metric
-
-        for _ in range(50):
-            x = random.randint(50, width - 50)
-            y = random.randint(50, height - 50)
-            r = random.randint(2, 8)
-
-            # Glowing effect
-            for glow_r in range(r, r + 15):
-                alpha = int(255 * (1 - (glow_r - r) / 15))
-                color = (100, 200, 255 if i % 2 == 0 else 255, 200, 100)
-                draw.ellipse(
-                    [x - glow_r, y - glow_r, x + glow_r, y + glow_r],
-                    fill=color[:3] + (alpha,),
+            for p in self.particles:
+                size = p.get_current_size()
+                # Draw glow
+                glow_size = size * 4
+                alpha = int(80 * p.life)
+                glow_draw.ellipse(
+                    [
+                        p.x - glow_size,
+                        p.y - glow_size,
+                        p.x + glow_size,
+                        p.y + glow_size,
+                    ],
+                    fill=p.color + (alpha,),
                 )
 
-        # Add metric value prominently
+            # Composite glow
+            img = Image.alpha_composite(img.convert("RGBA"), glow_img).convert("RGB")
+            draw = ImageDraw.Draw(img)
+
+        for p in self.particles:
+            size = p.get_current_size()
+            draw.ellipse([p.x - size, p.y - size, p.x + size, p.y + size], fill=p.color)
+
+
+# ============================================================================
+# METRIC VISUALIZATIONS - Beautiful and data-driven
+# ============================================================================
+class MetricVisualizer:
+    """Base class for metric visualizations."""
+
+    def __init__(self, width: int, height: int, palette: dict):
+        self.width = width
+        self.height = height
+        self.palette = palette
+        self.system = ParticleSystem(width, height)
+        self.time = 0.0
+
+    def get_particle_count(self, metric_value: int) -> int:
+        """Calculate particle count based on metric value."""
+        if metric_value == 0:
+            return 5
+        return min(50, max(5, int(math.sqrt(metric_value) * 3)))
+
+    def get_particle_speed(self, metric_value: int) -> float:
+        """Calculate particle speed based on metric value."""
+        return 0.5 + min(2.0, metric_value / 100)
+
+    def generate_frame(
+        self, metric_value: int, frame_idx: int, total_frames: int
+    ) -> Image.Image:
+        """Generate a single frame. Override in subclasses."""
+        raise NotImplementedError
+
+
+class StarVisualizer(MetricVisualizer):
+    """Glowing star particles with pulsing core."""
+
+    def get_particle_count(self, metric_value: int) -> int:
+        if metric_value == 0:
+            return 8
+        return min(60, max(8, int(math.log(metric_value + 1) * 8)))
+
+    def generate_frame(
+        self, metric_value: int, frame_idx: int, total_frames: int
+    ) -> Image.Image:
+        bg_color = self.palette["bg"]
+        img = Image.new("RGB", (self.width, self.height), bg_color)
+
+        progress = frame_idx / total_frames
+        time = frame_idx * 0.15
+
+        # Central pulsing core
+        core_size = 30 + 10 * math.sin(time * 2)
+        center_x, center_y = self.width // 2, self.height // 2
+
+        # Draw starburst from center
+        for i in range(8):
+            angle = (i / 8) * 2 * math.pi + time * 0.5
+            length = 40 + 20 * math.sin(time + i * 0.5)
+            end_x = center_x + math.cos(angle) * length
+            end_y = center_y + math.sin(angle) * length
+
+            # Draw ray
+            draw = ImageDraw.Draw(img)
+            draw.line(
+                [center_x, center_y, end_x, end_y],
+                fill=self.palette["primary"],
+                width=2,
+            )
+
+        # Orbiting particles
+        orbit_count = self.get_particle_count(metric_value)
+        for i in range(orbit_count):
+            angle = (i / orbit_count) * 2 * math.pi + time * 0.3
+            radius = 50 + 20 * math.sin(time * 2 + i * 0.3)
+            x = center_x + math.cos(angle) * radius
+            y = center_y + math.sin(angle) * radius
+
+            self.system.spawn(
+                x, y, 1, (3, 5), (0.1, 0.3), self.palette["primary"], 0.5, 0.01
+            )
+
+        # Add twinkling background stars
+        for _ in range(5):
+            x = random.randint(0, self.width)
+            y = random.randint(0, self.height)
+            brightness = 0.5 + 0.5 * math.sin(time * 3 + x * 0.1)
+            color = tuple(int(c * brightness) for c in self.palette["glow"])
+            self.system.spawn(x, y, 1, (1, 2), (0, 0), color, 0.3, 0.02)
+
+        # Draw particles
+        self.system.update()
+        self.system.render(img, glow=True)
+
+        # Draw metric value
+        draw = ImageDraw.Draw(img)
+        text = f"{metric_value:,}"
+        # Use default font if custom not available
+        bbox = draw.textbbox((0, 0), text)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
         draw.text(
-            (width // 2, height // 2),
-            f"{metric_value}",
-            fill=(255, 255, 255),
-            anchor="mm",
+            ((self.width - text_width) / 2, self.height - text_height - 20),
+            text,
+            fill=self.palette["primary"],
         )
 
-        # Save
-        img.save(f"assets/metric_{i + 1}.png")
-        print(f"  Saved: assets/metric_{i + 1}.png")
-
-    # Also create a combined static image
-    combined = Image.new("RGB", (1600, 800))
-    for i in range(4):
-        img = Image.open(f"assets/metric_{i + 1}.png")
-        x = (i % 2) * 800
-        y = (i // 2) * 400
-        combined.paste(img, (x, y))
-    combined.save("assets/metrics_dashboard.png")
-    print("Saved: assets/metrics_dashboard.png")
+        return img
 
 
+class ForkVisualizer(MetricVisualizer):
+    """Network branching particles - fork visualization."""
+
+    def generate_frame(
+        self, metric_value: int, frame_idx: int, total_frames: int
+    ) -> Image.Image:
+        bg_color = self.palette["bg"]
+        img = Image.new("RGB", (self.width, self.height), bg_color)
+
+        time = frame_idx * 0.12
+        center_x, center_y = self.width // 2, self.height // 2
+
+        # Draw branching network
+        num_branches = min(12, max(3, int(math.sqrt(metric_value + 1))))
+        for i in range(num_branches):
+            angle = (i / num_branches) * 2 * math.pi - math.pi / 2
+            length = 60 + 15 * math.sin(time + i * 0.5)
+
+            # Main branch
+            end_x = center_x + math.cos(angle) * length
+            end_y = center_y + math.sin(angle) * length
+
+            draw = ImageDraw.Draw(img)
+            draw.line(
+                [center_x, center_y, end_x, end_y],
+                fill=self.palette["primary"],
+                width=2,
+            )
+
+            # Sub-branches
+            for j in range(2):
+                sub_angle = angle + (j - 0.5) * 0.5 + time * 0.1
+                sub_length = length * 0.4
+                sub_end_x = end_x + math.cos(sub_angle) * sub_length
+                sub_end_y = end_y + math.sin(sub_angle) * sub_length
+
+                draw.line(
+                    [end_x, end_y, sub_end_x, sub_end_y],
+                    fill=self.palette["secondary"],
+                    width=1,
+                )
+
+        # Floating particles along branches
+        particle_count = self.get_particle_count(metric_value)
+        for i in range(particle_count):
+            angle = (i / particle_count) * 2 * math.pi + time * 0.2
+            radius = 40 + 30 * abs(math.sin(time + i * 0.2))
+            x = center_x + math.cos(angle) * radius
+            y = center_y + math.sin(angle) * radius
+
+            self.system.spawn(
+                x, y, 1, (2, 4), (0.2, 0.5), self.palette["glow"], 0.4, 0.015
+            )
+
+        self.system.update()
+        self.system.render(img, glow=True)
+
+        # Draw metric value
+        draw = ImageDraw.Draw(img)
+        text = f"{metric_value:,}"
+        bbox = draw.textbbox((0, 0), text)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        draw.text(
+            ((self.width - text_width) / 2, self.height - text_height - 20),
+            text,
+            fill=self.palette["primary"],
+        )
+
+        return img
+
+
+class IssueVisualizer(MetricVisualizer):
+    """Alert/pulse particles - issue indicators."""
+
+    def get_particle_count(self, metric_value: int) -> int:
+        if metric_value == 0:
+            return 5
+        return min(40, max(5, int(metric_value / 2)))
+
+    def generate_frame(
+        self, metric_value: int, frame_idx: int, total_frames: int
+    ) -> Image.Image:
+        bg_color = self.palette["bg"]
+        img = Image.new("RGB", (self.width, self.height), bg_color)
+
+        time = frame_idx * 0.2
+        center_x, center_y = self.width // 2, self.height // 2
+
+        # Pulsing alert circle
+        pulse_size = 40 + 15 * math.sin(time * 3)
+        pulse_alpha = int(100 + 50 * math.sin(time * 3))
+
+        draw = ImageDraw.Draw(img)
+
+        # Outer pulse rings
+        for i in range(3):
+            ring_size = pulse_size + i * 15
+            ring_alpha = int((100 - i * 30) * (0.5 + 0.5 * math.sin(time * 2)))
+            if ring_alpha > 0:
+                draw.ellipse(
+                    [
+                        center_x - ring_size,
+                        center_y - ring_size,
+                        center_x + ring_size,
+                        center_y + ring_size,
+                    ],
+                    outline=self.palette["primary"],
+                    width=2,
+                )
+
+        # Central exclamation mark area
+        draw.ellipse(
+            [center_x - 35, center_y - 35, center_x + 35, center_y + 35],
+            outline=self.palette["secondary"],
+            width=2,
+        )
+
+        # Rising particles (like issues being raised)
+        particle_count = self.get_particle_count(metric_value)
+        for i in range(particle_count):
+            y = self.height - (frame_idx / total_frames) * self.height * 0.8
+            x = center_x + (i - particle_count / 2) * 20 + 10 * math.sin(time + i)
+            size = 3 + 2 * math.sin(time * 2 + i)
+
+            self.system.spawn(
+                x,
+                y,
+                1,
+                (size, size),
+                (0, -0.5 - i * 0.05),
+                self.palette["primary"],
+                0.6,
+                0.012,
+            )
+
+        # Floating warning particles
+        for _ in range(3):
+            x = random.randint(50, self.width - 50)
+            y = random.randint(50, self.height - 100)
+            self.system.spawn(
+                x, y, 1, (2, 4), (0.3, 0.6), self.palette["secondary"], 0.4, 0.02
+            )
+
+        self.system.update()
+        self.system.render(img, glow=True)
+
+        # Draw metric value
+        draw = ImageDraw.Draw(img)
+        text = f"{metric_value:,}"
+        bbox = draw.textbbox((0, 0), text)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        draw.text(
+            ((self.width - text_width) / 2, self.height - text_height - 20),
+            text,
+            fill=self.palette["primary"],
+        )
+
+        return img
+
+
+class ContributorVisualizer(MetricVisualizer):
+    """Connected node network - contributor visualization."""
+
+    def generate_frame(
+        self, metric_value: int, frame_idx: int, total_frames: int
+    ) -> Image.Image:
+        bg_color = self.palette["bg"]
+        img = Image.new("RGB", (self.width, self.height), bg_color)
+
+        time = frame_idx * 0.1
+        center_x, center_y = self.width // 2, self.height // 2
+
+        draw = ImageDraw.Draw(img)
+
+        # Generate node positions
+        num_nodes = min(20, max(3, metric_value))
+        nodes = []
+        for i in range(num_nodes):
+            angle = (i / num_nodes) * 2 * math.pi + time * 0.1
+            radius = 40 + 25 * math.sin(time * 2 + i * 0.5)
+            x = center_x + math.cos(angle) * radius
+            y = center_y + math.sin(angle) * radius
+            nodes.append((x, y))
+            draw.ellipse([x - 6, y - 6, x + 6, y + 6], fill=self.palette["primary"])
+
+        # Draw connections
+        for i in range(len(nodes)):
+            for j in range(i + 1, len(nodes)):
+                x1, y1 = nodes[i]
+                x2, y2 = nodes[j]
+                dist = math.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2)
+
+                if dist < 100:  # Only connect nearby nodes
+                    alpha = int(255 * (1 - dist / 100))
+                    color = tuple(
+                        int(c * alpha / 255) for c in self.palette["secondary"]
+                    )
+                    draw.line([x1, y1, x2, y2], fill=color, width=1)
+
+        # Central hub particle
+        self.system.spawn(
+            center_x, center_y, 2, (4, 6), (0.5, 1.0), self.palette["glow"], 0.5, 0.01
+        )
+
+        # Orbiting connection particles
+        particle_count = self.get_particle_count(metric_value)
+        for i in range(particle_count):
+            angle = (i / particle_count) * 2 * math.pi + time * 0.4
+            radius = 30 + 15 * math.sin(time + i * 0.3)
+            x = center_x + math.cos(angle) * radius
+            y = center_y + math.sin(angle) * radius
+
+            self.system.spawn(
+                x, y, 1, (2, 3), (0.1, 0.3), self.palette["primary"], 0.4, 0.015
+            )
+
+        self.system.update()
+        self.system.render(img, glow=True)
+
+        # Draw metric value
+        draw = ImageDraw.Draw(img)
+        text = f"{metric_value:,}"
+        bbox = draw.textbbox((0, 0), text)
+        text_width = bbox[2] - bbox[0]
+        text_height = bbox[3] - bbox[1]
+        draw.text(
+            ((self.width - text_width) / 2, self.height - text_height - 20),
+            text,
+            fill=self.palette["primary"],
+        )
+
+        return img
+
+
+# ============================================================================
+# GIF GENERATION - Fast and efficient
+# ============================================================================
+def create_crossfade_frames(
+    frames1: list[Image.Image], frames2: list[Image.Image], crossfade_steps: int = 3
+) -> list[Image.Image]:
+    """Create crossfade between two frame sequences."""
+    result = []
+
+    # Forward sequence with crossfade
+    for i in range(len(frames1)):
+        # Add original frame
+        result.append(frames1[i])
+
+        # Add crossfade frames before next keyframe
+        if i < len(frames1) - 1 and crossfade_steps > 0:
+            for j in range(1, crossfade_steps + 1):
+                alpha = j / (crossfade_steps + 1)
+                blended = Image.blend(
+                    frames1[i].convert("RGBA"), frames1[i + 1].convert("RGBA"), alpha
+                )
+                result.append(blended.convert("RGB"))
+
+    return result
+
+
+def create_ping_pong(frames: list[Image.Image]) -> list[Image.Image]:
+    """Create ping-pong loop (forward then backward)."""
+    if len(frames) < 2:
+        return frames
+
+    # Forward
+    result = frames.copy()
+
+    # Backward (exclude first and last to avoid jarring transitions)
+    for frame in reversed(frames[1:-1]):
+        result.append(frame)
+
+    return result
+
+
+def generate_metric_gif(
+    visualizer: MetricVisualizer,
+    metric_value: int,
+    output_path: str,
+    keyframes: int = 8,
+    fps: int = 12,
+    width: int = 400,
+    height: int = 300,
+):
+    """Generate a GIF for a single metric."""
+    print(f"  Generating {keyframes} keyframes...")
+
+    # Generate keyframes
+    keyframe_images = []
+    for i in range(keyframes):
+        frame = visualizer.generate_frame(metric_value, i, keyframes)
+        frame = frame.resize((width, height), Image.LANCZOS)
+        keyframe_images.append(frame)
+
+    # Create ping-pong loop for seamless animation
+    final_frames = create_ping_pong(keyframe_images)
+
+    # Save as GIF
+    final_frames[0].save(
+        output_path,
+        save_all=True,
+        append_images=final_frames[1:],
+        duration=int(1000 / fps),
+        loop=0,
+        optimize=True,
+    )
+
+    print(f"  Saved: {output_path} ({len(final_frames)} frames)")
+
+
+def create_combined_dashboard(
+    frame_paths: list[str],
+    output_path: str,
+    fps: int = 12,
+):
+    """Combine individual metric GIFs into a 2x2 dashboard."""
+    print("Creating combined dashboard...")
+
+    # Load all frames from each GIF
+    all_frame_lists = []
+    for path in frame_paths:
+        try:
+            frames = []
+            with Image.open(path) as img:
+                while True:
+                    frames.append(img.copy())
+                    try:
+                        img.seek(img.tell() + 1)
+                    except EOFError:
+                        break
+            all_frame_lists.append(frames)
+            print(f"  Loaded {len(frames)} frames from {path}")
+        except Exception as e:
+            print(f"  Warning: Could not load {path}: {e}")
+            # Create placeholder
+            placeholder = Image.new("RGB", (400, 300), (30, 30, 40))
+            all_frame_lists.append([placeholder])
+
+    # Find shortest sequence
+    min_frames = min(len(frames) for frames in all_frame_lists)
+    print(f"  Using {min_frames} frames per metric")
+
+    # Create combined frames
+    combined_frames = []
+    for i in range(min_frames):
+        # Get frame from each metric (or last frame if shorter)
+        metric_frames = []
+        for frames in all_frame_lists:
+            frame = frames[min(i, len(frames) - 1)]
+            metric_frames.append(frame.resize((400, 300), Image.LANCZOS))
+
+        # 2x2 grid
+        row1 = Image.hstack([metric_frames[0], metric_frames[1]])
+        row2 = Image.hstack([metric_frames[2], metric_frames[3]])
+        dashboard = Image.vstack([row1, row2])
+
+        # Add title bar
+        title_bar = Image.new("RGB", (dashboard.width, 40), (20, 20, 30))
+        dashboard = Image.vstack([title_bar, dashboard])
+
+        combined_frames.append(dashboard)
+
+    # Save combined dashboard
+    combined_frames[0].save(
+        output_path,
+        save_all=True,
+        append_images=combined_frames[1:],
+        duration=int(1000 / fps),
+        loop=0,
+        optimize=True,
+    )
+
+    print(f"  Saved: {output_path} ({len(combined_frames)} frames)")
+
+
+# ============================================================================
+# MAIN GENERATION
+# ============================================================================
 def main():
-    """Main entry point."""
-
+    """Generate all metric visualizations."""
     print("=" * 60)
     print("GitHub Metrics Dashboard Generator")
+    print("Lightweight Particle Animation System")
     print("=" * 60)
-    print(f"Metrics: stars={stars}, forks={forks}, issues={issues}")
-    print(f"         commits={commits}, contributors={contributors}")
-    print(f"         PRs (30d)={prs_30d}, Issues (30d)={issues_30d}")
+    print(f"Metrics: ⭐ {stars} | 🍴 {forks} | 📋 {issues} | 👥 {contributors}")
+    print(f"Activity: {prs_30d} PRs, {issues_30d} issues (30d)")
     print("=" * 60)
 
-    metrics = {
-        "stars": stars,
-        "forks": forks,
-        "issues": issues,
-        "commits": commits,
-        "contributors": contributors,
-        "prs_30d": prs_30d,
-        "issues_30d": issues_30d,
-    }
+    width, height = 400, 300
+    fps = 12
+    keyframes = 10
 
-    # Try to generate animated GIF
-    try:
-        gif_path = generate_particle_gif(metrics, "assets/metrics_dashboard.gif")
-        print(f"\n✅ Success! Generated: {gif_path}")
+    # Generate individual metric GIFs
+    frame_paths = []
 
-        # Also save prompts used
-        prompts_info = []
-        for metric_name in ["stars", "forks", "issues", "contributors"]:
-            metric_value = metrics.get(metric_name, 0)
-            prompt, negative_prompt = create_particle_prompt(
-                metric_name, metric_value, 0, 8
-            )
-            prompts_info.append(
-                {
-                    "metric": metric_name,
-                    "value": metric_value,
-                    "prompt": prompt,
-                    "negative_prompt": negative_prompt,
-                }
-            )
+    # Stars
+    print("\n🎯 Generating Stars visualization...")
+    star_viz = StarVisualizer(width, height, Colors.STAR)
+    frame_path = "assets/metric_stars.gif"
+    generate_metric_gif(star_viz, stars, frame_path, keyframes, fps, width, height)
+    frame_paths.append(frame_path)
 
-        with open("prompts.json", "w") as f:
-            json.dump(prompts_info, f, indent=2)
+    # Forks
+    print("\n🍴 Generating Forks visualization...")
+    fork_viz = ForkVisualizer(width, height, Colors.FORK)
+    frame_path = "assets/metric_forks.gif"
+    generate_metric_gif(fork_viz, forks, frame_path, keyframes, fps, width, height)
+    frame_paths.append(frame_path)
 
-    except Exception as e:
-        print(f"\n❌ AnimateDiff failed: {e}")
-        print("Using fallback static image generation...")
+    # Issues
+    print("\n📋 Generating Issues visualization...")
+    issue_viz = IssueVisualizer(width, height, Colors.ISSUE)
+    frame_path = "assets/metric_issues.gif"
+    generate_metric_gif(issue_viz, issues, frame_path, keyframes, fps, width, height)
+    frame_paths.append(frame_path)
 
-        create_fallback_static_images(metrics)
+    # Contributors
+    print("\n👥 Generating Contributors visualization...")
+    contrib_viz = ContributorVisualizer(width, height, Colors.CONTRIBUTOR)
+    frame_path = "assets/metric_contributors.gif"
+    generate_metric_gif(
+        contrib_viz, contributors, frame_path, keyframes, fps, width, height
+    )
+    frame_paths.append(frame_path)
 
-        # Create a simple placeholder GIF from static images
-        try:
-            from PIL import Image as PILImage
-
-            frames = []
-            for i in range(4):
-                img = PILImage.open(f"assets/metric_{i + 1}.png")
-                frames.append(img.copy())
-                img.close()
-
-            # Add some variation by slightly rotating each frame
-            varied_frames = []
-            for i, frame in enumerate(frames):
-                varied_frames.append(frame)
-                # Add frame with slight brightness variation
-                from PIL import ImageEnhance
-
-                enhancer = ImageEnhance.Brightness(frame)
-                varied = enhancer.enhance(0.95 + (i * 0.02))
-                varied_frames.append(varied)
-
-            varied_frames[0].save(
-                "assets/metrics_dashboard.gif",
-                save_all=True,
-                append_images=varied_frames[1:],
-                duration=200,
-                loop=0,
-            )
-            print("✅ Created fallback GIF from static images")
-
-        except Exception as gif_error:
-            print(f"⚠️  Could not create fallback GIF: {gif_error}")
-            print("   Static images available in assets/")
+    # Create combined dashboard
+    print("\n🎨 Creating combined dashboard...")
+    create_combined_dashboard(frame_paths, "assets/metrics_dashboard.gif", fps=fps)
 
     print("\n" + "=" * 60)
-    print("Generation complete!")
+    print("✅ Generation complete!")
+    print(f"   Output: assets/metrics_dashboard.gif")
+    print(f"   FPS: {fps}, Keyframes: {keyframes}, Loop: infinite")
     print("=" * 60)
 
 
