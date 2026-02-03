@@ -33,11 +33,11 @@
 
 ## 📈 GitHub Statistics
 
-<div align="center" style="display: flex; justify-content: center; align-items: flex-start; gap: 24px; flex-wrap: wrap;">
+<div align="center" style="display: flex; justify-content: center; align-items: flex-start; gap: 20px; flex-wrap: wrap; max-width: 100%;">
 
-<img src="profile/stats.svg" alt="GitHub Statistics" style="max-width: 100%; width: 467px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);"/>
+<img src="profile/stats.svg" alt="GitHub Statistics" style="width: 400px; max-width: 48%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
 
-<img src="profile/top-langs.svg" alt="Top Languages" style="max-width: 100%; width: 300px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.2);"/>
+<img src="profile/top-langs.svg" alt="Top Languages" style="width: 400px; max-width: 48%; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3);"/>
 
 </div>
 
