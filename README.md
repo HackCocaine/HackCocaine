@@ -2,20 +2,20 @@
 
 # 👋 I'm Marcelo Burgos
 
-**Full-Stack Developer**
+**Full-Stack Developer & Open Source Enthusiast**
 
 ---
 
-## 📊 Metrics Dashboard
+## 📊 GitHub Metrics
 
-<!-- SVG embed for better GitHub compatibility -->
-<object type="image/svg+xml" data="https://github.com/HackCocaine/HackCocaine/raw/main/assets/metrics_dashboard.svg" width="100%" style="max-width:800px;border-radius:8px;">
-  <img src="https://github.com/HackCocaine/HackCocaine/raw/main/assets/metrics_dashboard.gif" alt="Metrics Dashboard" width="100%"/>
+<!-- High-resolution metrics dashboard showing global user stats -->
+<object type="image/svg+xml" data="https://github.com/HackCocaine/HackCocaine/raw/main/assets/metrics_dashboard.svg" width="100%" style="max-width:800px;border-radius:8px;display:block;margin:0 auto;">
+  <img src="https://github.com/HackCocaine/HackCocaine/raw/main/assets/metrics_dashboard.gif" alt="GitHub Metrics Dashboard" width="100%" style="border-radius:8px;"/>
 </object>
 
 ---
 
-## 🛠️ Stack
+## 🛠️ Tech Stack
 
 ![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)
