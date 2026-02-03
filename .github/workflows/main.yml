@@ -5,51 +5,86 @@ on:
   schedule:
     - cron: '0 12 * * *'
 
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
 jobs:
   generate:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+          cache: 'pip'
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
-          pip install diffusers transformers accelerate safetensors pillow
+          pip install diffusers transformers accelerate safetensors pillow imageio imageio-ffmpeg
 
-      - name: Fetch GitHub Metrics
+      - name: Fetch GitHub Metrics (Authenticated)
         id: metrics
+        env:
+          METRICS_TOKEN: ${{ secrets.METRICS_TOKEN }}
         run: |
-          STARS=$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}" | jq '.stargazers_count')
-          FORKS=$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}" | jq '.forks_count')
-          ISSUES=$(curl -s "https://api.github.com/repos/${GITHUB_REPOSITORY}" | jq '.open_issues_count')
+          AUTH_HEADER="Authorization: Bearer $METRICS_TOKEN"
+          
+          # Basic metrics (authenticated for higher rate limits)
+          REPO_DATA=$(curl -s -H "$AUTH_HEADER" "https://api.github.com/repos/${GITHUB_REPOSITORY}")
+          STARS=$(echo "$REPO_DATA" | jq '.stargazers_count')
+          FORKS=$(echo "$REPO_DATA" | jq '.forks_count')
+          ISSUES=$(echo "$REPO_DATA" | jq '.open_issues_count')
+          
+          # Deep metrics - Activity data
+          COMMITS=$(curl -s -H "$AUTH_HEADER" "https://api.github.com/repos/${GITHUB_REPOSITORY}/commits?per_page=1" | grep -o '"sha"' | wc -l)
+          
+          # Contributors count
+          CONTRIBUTORS=$(curl -s -H "$AUTH_HEADER" "https://api.github.com/repos/${GITHUB_REPOSITORY}/contributors?per_page=1" | grep -o '"login"' | wc -l)
+          
+          # Recent activity (last 30 days)
+          SINCE_DATE=$(date -d "30 days ago" +%Y-%m-%dT%H:%M:%SZ)
+          PRS_LAST_30D=$(curl -s -H "$AUTH_HEADER" "https://api.github.com/search/issues?q=repo:${GITHUB_REPOSITORY}+is:pr+created:>=${SINCE_DATE}" | jq '.total_count')
+          ISSUES_LAST_30D=$(curl -s -H "$AUTH_HEADER" "https://api.github.com/search/issues?q=repo:${GITHUB_REPOSITORY}+is:issue+created:>=${SINCE_DATE}-is:pr" | jq '.total_count')
+          
+          # Output all metrics
           echo "stars=$STARS" >> $GITHUB_OUTPUT
           echo "forks=$FORKS" >> $GITHUB_OUTPUT
           echo "issues=$ISSUES" >> $GITHUB_OUTPUT
+          echo "commits=$COMMITS" >> $GITHUB_OUTPUT
+          echo "contributors=$CONTRIBUTORS" >> $GITHUB_OUTPUT
+          echo "prs_30d=$PRS_LAST_30D" >> $GITHUB_OUTPUT
+          echo "issues_30d=$ISSUES_LAST_30D" >> $GITHUB_OUTPUT
 
-      - name: Generate Images
+      - name: Generate GIF Visualization
         env:
           STARS: ${{ steps.metrics.outputs.stars }}
           FORKS: ${{ steps.metrics.outputs.forks }}
           ISSUES: ${{ steps.metrics.outputs.issues }}
+          COMMITS: ${{ steps.metrics.outputs.commits }}
+          CONTRIBUTORS: ${{ steps.metrics.outputs.contributors }}
+          PRS_30D: ${{ steps.metrics.outputs.prs_30d }}
+          ISSUES_30D: ${{ steps.metrics.outputs.issues_30d }}
+          METRICS_TOKEN: ${{ secrets.METRICS_TOKEN }}
         run: python generate_metrics.py
 
       - name: Update README
         run: |
-          BLOCK='<p align="center">![Stars](assets/metric_1.png) ![Forks](assets/metric_2.png) ![Issues](assets/metric_3.png)</p>'
+          # Update to use GIF instead of static images
+          BLOCK='<p align="center"><img src="assets/metrics_dashboard.gif" alt="Repository Metrics Dashboard" width="100%"/></p>'
           perl -i -0pe 's/<!-- METRICS_IMAGE -->.*<!-- \/METRICS_IMAGE -->/$ENV{BLOCK}/smg' README.md
 
       - name: Commit & Push
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add README.md assets/*.png prompts.json
+          git add README.md assets/*.gif assets/*.png prompts.json metrics_data.json
           git commit -m "Auto-update metrics visuals [ci skip]" || echo "No changes to commit"
-          git push origin main
+          git push origin main || echo "No changes to push"
