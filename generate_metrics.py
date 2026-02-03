@@ -115,16 +115,29 @@ class ParticleSystem:
         decay=0.01,
         angle_range=(0, 2 * math.pi),
     ):
+        # Ensure valid ranges
+        size_min, size_max = size_range
+        if size_min > size_max:
+            size_min, size_max = size_max, size_min
+        if size_max < 0.5:
+            size_min, size_max = 0.5, 1.5
+
+        speed_min, speed_max = speed_range
+        if speed_min > speed_max:
+            speed_min, speed_max = speed_max, speed_min
+        if speed_max < 0.1:
+            speed_min, speed_max = 0.1, 0.5
+
         for _ in range(count):
             angle = random.uniform(*angle_range)
-            speed = random.uniform(*speed_range)
+            speed = random.uniform(speed_min, speed_max)
             self.particles.append(
                 Particle(
                     x,
                     y,
                     math.cos(angle) * speed,
                     math.sin(angle) * speed,
-                    random.uniform(*size_range),
+                    random.uniform(size_min, size_max),
                     color,
                     life,
                     decay,
@@ -238,11 +251,14 @@ class StarVisualizer(MetricVisualizer):
 
         # Twinkling stars
         for _ in range(3):
-            x = random.randint(30, self.width - 30)
-            y = random.randint(50, self.height - 80)
-            brightness = 0.4 + 0.6 * math.sin(time * 2 + x * 0.1)
-            color = tuple(int(c * brightness) for c in self.palette["glow"])
-            self.system.spawn(x, y, 1, (1, 2), (0, 0), color, 0.4, 0.02)
+            x_min, x_max = 10, self.width - 10
+            y_min, y_max = 40, self.height - 50
+            if x_min < x_max and y_min < y_max:
+                x = random.randint(x_min, x_max)
+                y = random.randint(y_min, y_max)
+                brightness = 0.4 + 0.6 * math.sin(time * 2 + x * 0.1)
+                color = tuple(int(c * brightness) for c in self.palette["glow"])
+                self.system.spawn(x, y, 1, (1, 2), (0, 0), color, 0.4, 0.02)
 
         self.system.update()
         self.system.render(img, glow=True)
@@ -320,12 +336,12 @@ class IssueVisualizer(MetricVisualizer):
                 + 20 * math.sin(time + i)
             )
             x = center_x + (i - count / 2) * 15 + 8 * math.sin(time + i * 0.5)
-            size = 2.5 + math.sin(time * 2 + i) * 1
+            size = max(0.5, 2.5 + math.sin(time * 2 + i) * 1)
             self.system.spawn(
                 x,
                 y,
                 1,
-                (size, size),
+                (size, size + 1),
                 (0, -0.4 - i * 0.02),
                 self.palette["primary"],
                 0.6,
