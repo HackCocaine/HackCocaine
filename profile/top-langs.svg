@@ -1,136 +1,227 @@
-<svg
-  width="295"
-  height="130"
-  viewBox="0 0 295 130"
-  fill="none"
-  xmlns="http://www.w3.org/2000/svg"
-  role="img"
-  aria-labelledby="descId"
->
-  <title id="titleId"></title>
-  <desc id="descId"></desc>
-  <style>
-    .header {
-      font: 600 18px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif;
-      fill: #58a6ff;
-      animation: fadeInAnimation 0.8s ease-in-out forwards;
-    }
-    @supports(-moz-appearance: auto) {
-      .header { font-size: 15.5px; }
-    }
 
+      <svg
+        width="300"
+        height="140"
+        viewBox="0 0 300 140"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        role="img"
+        aria-labelledby="descId"
+      >
+        <title id="titleId"></title>
+        <desc id="descId"></desc>
+        <style>
+          .header {
+            font: 600 18px 'Segoe UI', Ubuntu, "Helvetica Neue", Sans-Serif;
+            fill: #2f80ed;
+            animation: fadeInAnimation 0.8s ease-in-out forwards;
+          }
+          @supports(-moz-appearance: auto) {
+            /* Selector detects Firefox */
+            .header { font-size: 15.5px; }
+          }
+          
     .lang-name {
-      font: 400 12px 'Segoe UI', Ubuntu, Sans-Serif;
-      fill: #c9d1d9;
+      font: 400 11px 'Segoe UI', Ubuntu, Sans-Serif; fill: #434d58;
     }
-
     .stagger {
       opacity: 0;
       animation: fadeInAnimation 0.3s ease-in-out forwards;
     }
-
-    @keyframes fadeInAnimation {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    .lang-progress {
+      animation: growWidthAnimation 0.6s ease-in-out forwards;
     }
-
-    /* Animations */
-    @keyframes scaleInAnimation {
-      from { transform: translate(-5px, 5px) scale(0); }
-      to { transform: translate(-5px, 5px) scale(1); }
+    #rect-mask rect {
+      animation: slideInAnimation 1s ease-in-out forwards;
     }
-    @keyframes fadeInAnimation {
-      from { opacity: 0; }
-      to { opacity: 1; }
+    @keyframes progressAnimation {
+      from {
+        width: 0;
+      }
     }
     @keyframes slideInAnimation {
-      from { transform: translateX(-10px); opacity: 0; }
-      to { transform: translateX(0); opacity: 1; }
+      from {
+        width: 0;
+      }
+      to {
+        width: calc(100%-100px);
+      }
     }
-    @keyframes bounceInAnimation {
-      0% { transform: scale(0.3); opacity: 0; }
-      50% { transform: scale(1.05); }
-      70% { transform: scale(0.9); }
-      100% { transform: scale(1); opacity: 1; }
+    @keyframes growWidthAnimation {
+      from {
+        width: 0;
+      }
+      to {
+        width: 100%;
+      }
     }
-  </style>
+    @keyframes fadeInAnimation {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+  
 
-  <!-- Card Background - Dark Theme -->
-  <rect
-    data-testid="card-bg"
-    x="0.5"
-    y="0.5"
-    rx="8"
-    height="129"
-    stroke="#30363d"
-    width="294"
-    fill="#0d1117"
-    stroke-opacity="1.0"
-  />
+          
+      /* Animations */
+      @keyframes scaleInAnimation {
+        from {
+          transform: translate(-5px, 5px) scale(0);
+        }
+        to {
+          transform: translate(-5px, 5px) scale(1);
+        }
+      }
+      @keyframes fadeInAnimation {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes slideInAnimation {
+        from {
+          transform: translateX(-10px);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
+      }
+      @keyframes bounceInAnimation {
+        0% {
+          transform: scale(0.3);
+          opacity: 0;
+        }
+        50% {
+          transform: scale(1.05);
+        }
+        70% {
+          transform: scale(0.9);
+        }
+        100% {
+          transform: scale(1);
+          opacity: 1;
+        }
+      }
+    
+          
+        </style>
 
-  <!-- Header -->
-  <g data-testid="card-title" transform="translate(22, 35)">
-    <g transform="translate(0, 0)">
-      <text x="0" y="0" class="header" data-testid="header">Most Used Languages</text>
+        
+
+        <rect
+          data-testid="card-bg"
+          x="0.5"
+          y="0.5"
+          rx="4.5"
+          height="99%"
+          stroke="#e4e2e2"
+          width="299"
+          fill="#fffefe"
+          stroke-opacity="1.0"
+        />
+
+        
+      <g
+        data-testid="card-title"
+        transform="translate(25, 35)"
+      >
+        <g transform="translate(0, 0)">
+      <text
+        x="0"
+        y="0"
+        class="header"
+        data-testid="header"
+      >Most Used Languages</text>
     </g>
+      </g>
+    
+
+        <g
+          data-testid="main-card-body"
+          transform="translate(0, 55)"
+        >
+          
+    <svg data-testid="lang-items" x="25">
+      
+  
+      <mask id="rect-mask">
+        <rect x="0" y="0" width="250" height="8" fill="white" rx="5"/>
+      </mask>
+      
+        <rect
+          mask="url(#rect-mask)"
+          data-testid="lang-progress"
+          x="0.00"
+          y="0"
+          width="95.47"
+          height="8"
+          fill="#f1e05a"
+        />
+      
+        <rect
+          mask="url(#rect-mask)"
+          data-testid="lang-progress"
+          x="95.47"
+          y="0"
+          width="82.32"
+          height="8"
+          fill="#e34c26"
+        />
+      
+        <rect
+          mask="url(#rect-mask)"
+          data-testid="lang-progress"
+          x="177.79"
+          y="0"
+          width="71.47"
+          height="8"
+          fill="#3572A5"
+        />
+      
+        <rect
+          mask="url(#rect-mask)"
+          data-testid="lang-progress"
+          x="249.25"
+          y="0"
+          width="10.75"
+          height="8"
+          fill="#663399"
+        />
+      
+    
+  <g transform="translate(0, 25)">
+    <g transform="translate(0, 0)"><g transform="translate(0, 0)">
+    <g class="stagger" style="animation-delay: 450ms">
+      <circle cx="5" cy="6" r="5" fill="#f1e05a" />
+      <text data-testid="lang-name" x="15" y="10" class="lang-name">JavaScript 38.19%</text>
+    </g>
+  </g><g transform="translate(0, 25)">
+    <g class="stagger" style="animation-delay: 600ms">
+      <circle cx="5" cy="6" r="5" fill="#e34c26" />
+      <text data-testid="lang-name" x="15" y="10" class="lang-name">HTML 32.93%</text>
+    </g>
+  </g></g><g transform="translate(150, 0)"><g transform="translate(0, 0)">
+    <g class="stagger" style="animation-delay: 750ms">
+      <circle cx="5" cy="6" r="5" fill="#3572A5" />
+      <text data-testid="lang-name" x="15" y="10" class="lang-name">Python 28.59%</text>
+    </g>
+  </g><g transform="translate(0, 25)">
+    <g class="stagger" style="animation-delay: 900ms">
+      <circle cx="5" cy="6" r="5" fill="#663399" />
+      <text data-testid="lang-name" x="15" y="10" class="lang-name">CSS 0.30%</text>
+    </g>
+  </g></g>
   </g>
-
-  <!-- Main Card Body -->
-  <g data-testid="main-card-body" transform="translate(22, 60)">
-
-    <!-- Language Progress Bars -->
-    <svg data-testid="lang-items" x="0" y="0" width="251" height="50">
-
-      <!-- Bar 1: JavaScript 39.73% -->
-      <rect data-testid="lang-progress" x="0" y="0" width="99.34" height="8" fill="#f1e05a" rx="4"/>
-
-      <!-- Bar 2: HTML 34.26% -->
-      <rect data-testid="lang-progress" x="104.34" y="0" width="85.65" height="8" fill="#e34c26" rx="4"/>
-
-      <!-- Bar 3: Python 25.70% -->
-      <rect data-testid="lang-progress" x="195" y="0" width="55.84" height="8" fill="#3572A5" rx="4"/>
-
-      <!-- Bar 4: CSS 0.31% -->
-      <rect data-testid="lang-progress" x="0" y="22" width="0.78" height="8" fill="#663399" rx="4"/>
-
+  
     </svg>
-
-    <!-- Language Labels - 2 Column Layout -->
-    <g transform="translate(0, 28)">
-
-      <!-- JavaScript -->
-      <g transform="translate(0, 0)">
-        <g class="stagger" style="animation-delay: 450ms">
-          <circle cx="5" cy="6" r="5" fill="#f1e05a"/>
-          <text data-testid="lang-name" x="15" y="10" class="lang-name">JavaScript 39.73%</text>
+  
         </g>
-      </g>
-
-      <!-- HTML -->
-      <g transform="translate(125, 0)">
-        <g class="stagger" style="animation-delay: 600ms">
-          <circle cx="5" cy="6" r="5" fill="#e34c26"/>
-          <text data-testid="lang-name" x="15" y="10" class="lang-name">HTML 34.26%</text>
-        </g>
-      </g>
-
-      <!-- Python -->
-      <g transform="translate(0, 22)">
-        <g class="stagger" style="animation-delay: 750ms">
-          <circle cx="5" cy="6" r="5" fill="#3572A5"/>
-          <text data-testid="lang-name" x="15" y="10" class="lang-name">Python 25.70%</text>
-        </g>
-      </g>
-
-      <!-- CSS -->
-      <g transform="translate(125, 22)">
-        <g class="stagger" style="animation-delay: 900ms">
-          <circle cx="5" cy="6" r="5" fill="#663399"/>
-          <text data-testid="lang-name" x="15" y="10" class="lang-name">CSS 0.31%</text>
-        </g>
-      </g>
-
-    </g>
-
-  </g>
-</svg>
+      </svg>
+    
